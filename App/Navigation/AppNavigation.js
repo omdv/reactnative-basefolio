@@ -1,18 +1,51 @@
-import { StackNavigator } from 'react-navigation'
-import LaunchScreen from '../Containers/LaunchScreen'
+import React, { PropTypes } from 'react'
+import { connect } from 'react-redux'
+import { StackNavigator, addNavigationHelpers } from 'react-navigation'
+import Test from '../Containers/Test'
+import AccountsTest from '../Containers/AccountsTest'
+import AccountsScreen from '../Containers/AccountsScreen'
+import AuthScreen from '../Containers/AuthScreen'
+import LoadingScreen from '../Containers/LoadingScreen'
+import LoggedInStackNavigator from './LoggedInStackNavigator'
+import NotLoggedInStackNavigator from './NotLoggedInStackNavigator'
 
 import styles from './Styles/NavigationStyles'
 
 // Manifest of possible screens
-const PrimaryNav = StackNavigator({
-  LaunchScreen: { screen: LaunchScreen }
+export const PrimaryNav = StackNavigator({
+  Test: { screen: Test },
+  AccountsTest: { screen: AccountsTest },
+  AccountsScreen: { screen: AccountsScreen },
+  AuthScreen: { screen: AuthScreen },
+  LoadingScreen: { screen: LoadingScreen },
+  LoggedInStack: { screen: LoggedInStackNavigator },
+  NotLoggedInStack: { screen: NotLoggedInStackNavigator }
 }, {
   // Default config for all screens
   headerMode: 'none',
-  initialRouteName: 'LaunchScreen',
   navigationOptions: {
     headerStyle: styles.header
   }
 })
 
-export default PrimaryNav
+const Navigation = ({ dispatch, navigation }) => {
+  return (
+    <PrimaryNav
+      navigation={addNavigationHelpers({ dispatch, state: navigation })}
+    />
+  )
+}
+
+Navigation.propTypes = {
+  dispatch: PropTypes.func.isRequired,
+  navigation: PropTypes.object.isRequired
+}
+
+function mapStateToProps (state) {
+  return {
+    navigation: state.navigation
+  }
+}
+
+// export default PrimaryNav
+export default connect(mapStateToProps)(Navigation)

@@ -1,0 +1,14 @@
+TODO:
+- Add transformer to convert numerical values in Sagas
+- Add double grouping - type + currency
+- Add positions acquired before coinbase, i.e. when coins are send to Coinbase
+- ADD acitivity indicators
+
+PRIOR TO RELEASE:
+- Clean AccountsRedux and Sagas - redundant
+
+
+General:
+- Define features and screens clearly and start working on MVP
+
+PP9RL7
