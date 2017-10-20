@@ -10,28 +10,66 @@
 *    you'll need to define a constant in that file.
 *************************************************************/
 
-import { call, put } from 'redux-saga/effects'
-import CryptoPricesActions from '../Redux/CryptoPricesRedux'
+import { delay } from 'redux-saga'
+import { call, take, put, all, fork, race } from 'redux-saga/effects'
+import CryptoPricesActions, { CryptoPricesTypes }  from '../Redux/CryptoPricesRedux'
 
-export function * getCryptoPrices (api, action) {
+// Fetch prices every 20 seconds                                           
+function* getCurrentPriceData(api, action) {
+  const { coins } = action
+  let prices = {}
+
+  // delay
+  yield call(delay, 60*1000)
+
+  let response = yield all(
+    coins.map(coin => call(api.getCurrentPrices, coin))
+  )
+
+  // check for summary status
+  let ok = response.map(a => a.ok).reduce((a,b) => a && b)
+  
+  // convert to object
+  for (i in response) {
+    prices[coins[i]] = response[i].data
+  }
+
+  if (ok) {
+    yield put(CryptoPricesActions.pricePollSuccess(prices))
+  }
+}
+
+// Called on PRICE_POLL_START
+export function* currentPricesPoll(api, action) {
+  while (true) {
+    yield race([
+      call(getCurrentPriceData, api, action),
+      take(CryptoPricesTypes.PRICE_POLL_STOP)
+    ])
+  }
+}
+
+export function * getDailyHistPrices (api, action) {
   const { coins } = action
   let failure = false
   let prices = {}
 
-  for (coin in coins) {
-    // make the call to the api
-    var response = yield call(api.getPrices, coins)
-    if (response.ok) {
-      prices[coin] = response.data
-    } else {
-      failure = true
-    }
-  }
+  let response = yield all(
+    coins.map(coin => call(api.getDailyHistPrices, coin))
+  )
 
+  // check for summary status
+  let ok = response.map(a => a.ok).reduce((a,b) => a && b)
+  
+  // convert to object
+  for (i in response) {
+    prices[coins[i]] = response[i].data.Data
+  }
+  
   // success?
-  if (!failure) {
-    yield put(CryptoPricesActions.cryptoPricesSuccess(prices))
+  if (ok) {
+    yield put(CryptoPricesActions.histPricesSuccess(prices))
   } else {
-    yield put(CryptoPricesActions.cryptoPricesFailure())
+    yield put(CryptoPricesActions.histPricesFailure())
   }
 }
