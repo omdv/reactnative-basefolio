@@ -6,7 +6,7 @@ export default StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 30,
-    backgroundColor: Colors.charcoal
+    backgroundColor: Colors.background
   },
   separator: {
     height: 0.2,

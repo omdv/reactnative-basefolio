@@ -9,12 +9,6 @@ export default class SummarySheet extends Component {
     summary: PropTypes.object,
   }
 
-  // constructor(props) {
-  //   super(props)
-  //   this.state = {
-  //   }
-  // }
-
   render () {
     const { summary } = this.props
     const isPositive = summary.gain > 0 ? true : false
