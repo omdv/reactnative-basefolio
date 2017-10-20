@@ -29,5 +29,33 @@ export default {
       ok: true,
       data: username.toLowerCase() === 'gantman' ? gantmanData : skellockData
     }
+  },
+  getDailyHistPrices: (coin) => {
+    switch (coin) {
+      case "BTC":
+        data = {"Data": require('../Fixtures/pricesBTC.json')}
+      case "ETH":
+        data = {"Data": require('../Fixtures/pricesETH.json')}
+      case "LTC":
+        data = {"Data": require('../Fixtures/pricesLTC.json')}
+    }
+    return {
+      ok: true,
+      data: data
+    }
+  },
+  getCurrentPrices: (coin) => {
+    switch (coin) {
+      case "BTC":
+        data = {"Data": require('../Fixtures/pricesBTClatest.json')}
+      case "ETH":
+        data = {"Data": require('../Fixtures/pricesETHlatest.json')}
+      case "LTC":
+        data = {"Data": require('../Fixtures/pricesLTClatest.json')}
+    }
+    return {
+      ok: true,
+      data: data
+    }
   }
 }
