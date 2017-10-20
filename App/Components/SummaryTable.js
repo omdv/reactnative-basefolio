@@ -4,7 +4,6 @@ import { View, Text, TouchableOpacity, FlatList } from 'react-native'
 import styles from './Styles/SummaryTableStyle'
 import { Colors } from '../Themes'
 
-
 export default class SummaryTable extends Component {
   static propTypes = {
     summary: PropTypes.array,
@@ -12,31 +11,51 @@ export default class SummaryTable extends Component {
 
   constructor(props) {
     super(props)
-
+    
+    // init returnVal
+    let { summary } = props
+    let newSummary = []
+    summary.map(e => {
+      e.returnVal = e.return.toFixed(2)+' %'
+      newSummary.push(e)
+    })
     this.state = {
-      flipState: true,
-      summary: null
+      summary: newSummary
     }
+
+    // bind functions
     this.flipButton = this.flipButton.bind(this)
     this.renderRow = this.renderRow.bind(this)
+    this.assignReturnValue = this.assignReturnValue.bind(this)
   }
+
+  // init returnKey
+  returnKey = "return"
   
-  flipButton () {
+  assignReturnValue () {
+    let { summary } = this.props
     let newSummary = []
-    this.props.summary.map(e => {
-      e.returnVal = this.state.flipState ? e.return.toFixed(2)+' %' : e.gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+    summary.map(e => {
+      e.returnVal = this.returnKey === "return" ? e.return.toFixed(2)+' %' : e.gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
       newSummary.push(e)
     })
     this.setState({
       summary: newSummary,
     })
-    this.setState(previousState => {
-      return { flipState: !previousState.flipState }
-    })
+  }
+  
+  flipButton () {
+    this.returnKey = this.returnKey === "return" ? "gain" : "return"
+    this.assignReturnValue()
   }
 
   componentDidMount() {
-    this.flipButton()
+    this.assignReturnValue()
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.props = nextProps
+    this.assignReturnValue()
   }
 
   renderRow ({item}) {
@@ -70,11 +89,12 @@ export default class SummaryTable extends Component {
   oneScreensWorth = 20
 
   render () {
+    const { summary } = this.state
     return (
       <View style={styles.container}>
           <FlatList
             contentContainerStyle={styles.listContent}
-            data={ this.state.summary }
+            data={ summary }
             renderItem={this.renderRow}
             keyExtractor={this.keyExtractor}
             initialNumToRender={this.oneScreensWorth}
