@@ -31,13 +31,17 @@ export default {
     }
   },
   getDailyHistPrices: (coin) => {
+    let data = {}
     switch (coin) {
       case "BTC":
         data = {"Data": require('../Fixtures/pricesBTC.json')}
+        break
       case "ETH":
         data = {"Data": require('../Fixtures/pricesETH.json')}
+        break
       case "LTC":
         data = {"Data": require('../Fixtures/pricesLTC.json')}
+        break
     }
     return {
       ok: true,
@@ -47,11 +51,14 @@ export default {
   getCurrentPrices: (coin) => {
     switch (coin) {
       case "BTC":
-        data = {"Data": require('../Fixtures/pricesBTClatest.json')}
+        data = require('../Fixtures/pricesBTClatest.json')
+        break
       case "ETH":
-        data = {"Data": require('../Fixtures/pricesETHlatest.json')}
+        data = require('../Fixtures/pricesETHlatest.json')
+        break
       case "LTC":
-        data = {"Data": require('../Fixtures/pricesLTClatest.json')}
+        data = require('../Fixtures/pricesLTClatest.json')
+        break
     }
     return {
       ok: true,
