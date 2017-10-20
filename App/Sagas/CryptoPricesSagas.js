@@ -14,13 +14,13 @@ import { delay } from 'redux-saga'
 import { call, take, put, all, fork, race } from 'redux-saga/effects'
 import CryptoPricesActions, { CryptoPricesTypes }  from '../Redux/CryptoPricesRedux'
 
-// Fetch prices every 20 seconds                                           
-function* getCurrentPriceData(api, action) {
+// Fetch current prices                                           
+function* getCurrentPriceData(api, action, millis) {
   const { coins } = action
   let prices = {}
 
   // delay
-  yield call(delay, 60*1000)
+  yield call(delay, millis)
 
   let response = yield all(
     coins.map(coin => call(api.getCurrentPrices, coin))
@@ -35,24 +35,17 @@ function* getCurrentPriceData(api, action) {
   }
 
   if (ok) {
-    yield put(CryptoPricesActions.pricePollSuccess(prices))
+    yield put(CryptoPricesActions.currPricesSuccess(prices))
   }
 }
 
-// Called on PRICE_POLL_START
-export function* currentPricesPoll(api, action) {
-  while (true) {
-    yield race([
-      call(getCurrentPriceData, api, action),
-      take(CryptoPricesTypes.PRICE_POLL_STOP)
-    ])
-  }
-}
-
-export function * getDailyHistPrices (api, action) {
+export function * getDailyHistPrices (api, action, millis) {
   const { coins } = action
   let failure = false
   let prices = {}
+
+  // delay
+  yield call(delay, millis)
 
   let response = yield all(
     coins.map(coin => call(api.getDailyHistPrices, coin))
@@ -72,4 +65,30 @@ export function * getDailyHistPrices (api, action) {
   } else {
     yield put(CryptoPricesActions.histPricesFailure())
   }
+}
+
+// helper to define race
+function* currentPricesPoll(api, action, millis) {
+  while (true) {
+    yield race([
+      call(getCurrentPriceData, api, action, millis),
+      take(CryptoPricesTypes.PRICE_POLL_STOP)
+    ])
+  }
+}
+
+// helper to define race
+function* historyPricesPoll(api, action, millis) {
+  while (true) {
+    yield race([
+      call(getDailyHistPrices, api, action, millis),
+      take(CryptoPricesTypes.PRICE_POLL_STOP)
+    ])
+  }
+}
+
+// called on PRICE_POLL_START
+export function* pricesPoller(api, action) {
+  yield fork(currentPricesPoll, api, action, 5*1000)
+  yield fork(historyPricesPoll, api, action, 20*1000)
 }
