@@ -2,7 +2,7 @@
 import apisauce from 'apisauce'
 
 // our "constructor"
-const create = (baseURL = 'https://min-api.cryptocompare.com/data/histoday?tsym=USD&limit=60&aggregate=3&e=Coinbase&extraParams=cryptofolio') => {
+const create = (baseURL = 'https://min-api.cryptocompare.com/data/') => {
 
   const api = apisauce.create({
     baseURL,
@@ -24,7 +24,12 @@ const create = (baseURL = 'https://min-api.cryptocompare.com/data/histoday?tsym=
   // way at this level.
   //
 
-  const getPrices = (coin) => api.get('&fsym='+coin, {}, {})
+  const getDailyHistPrices = (coin) => api.get(
+    'histoday?tsym=USD&limit=60&aggregate=3&e=Coinbase&extraParams=cryptofolio&fsym='+coin,
+    {}, {})
+  const getCurrentPrices = (coin) => api.get(
+    'price?fsym='+coin+'&tsyms=USD',
+    {}, {})
 
   // ------
   // STEP 3
@@ -39,7 +44,8 @@ const create = (baseURL = 'https://min-api.cryptocompare.com/data/histoday?tsym=
   // private scoped goodies in JavaScript.
   //
   return {
-    getPrices
+    getDailyHistPrices,
+    getCurrentPrices
   }
 }
 
