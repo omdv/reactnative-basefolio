@@ -12,8 +12,9 @@ export default StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   rowContainer: {
-    height: 10,
+    height: Metrics.doubleBaseMargin*2,
     flexDirection: 'row',
+    borderRadius: 5,
     margin: Metrics.baseMargin,
     backgroundColor: Colors.background
   },

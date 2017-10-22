@@ -129,6 +129,10 @@ class AccountsScreen extends Component {
     })
   }
 
+  refreshAll() {
+    // TODO
+  }
+
   render () {
     const { summary } = this.state
     const { hist_prices } = this.props

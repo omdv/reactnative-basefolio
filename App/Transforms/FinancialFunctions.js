@@ -42,6 +42,7 @@ function getPositions(assets, transactions, prices, accounts) {
         let buy_price = o.native_amount.amount / o.amount.amount
         let gain = (current_price[coin] - buy_price) * amount
         var position = {
+          'type': 'Buy',
           'amount': amount,
           'coin': coin,
           'buy_price': buy_price,

@@ -33,15 +33,15 @@ export default StyleSheet.create({
     alignSelf: 'center',
     color: Colors.snow,
     textAlign: 'center',
+    textAlignVertical: "center"
   },
   rowButtonContainer: {
     margin: Metrics.baseMargin,
     height: Metrics.rowHeight - Metrics.doubleBaseMargin,
     justifyContent: 'center',
     marginHorizontal: Metrics.section,
-    padding: 5,
+    padding: Metrics.smallMargin,
     marginVertical: Metrics.baseMargin,
-    backgroundColor: Colors.positive,
     borderRadius: 5
   }
 })

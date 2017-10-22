@@ -34,7 +34,8 @@ export default class SummaryTable extends Component {
       newSummary.push(e)
     })
     this.state = {
-      summary: newSummary
+      summary: newSummary,
+      returnValLength: 6
     }
 
     // bind functions
@@ -49,12 +50,15 @@ export default class SummaryTable extends Component {
   assignReturnValue () {
     let { summary } = this.props
     let newSummary = []
+    let maxLength = 0
     summary.map(e => {
       e.returnVal = this.returnKey === "return" ? e.return.toFixed(2)+' %' : e.gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
       newSummary.push(e)
+      maxLength = e.returnVal.length > maxLength ? e.returnVal.length : maxLength
     })
     this.setState({
       summary: newSummary,
+      returnValLength: maxLength
     })
   }
   
@@ -74,6 +78,7 @@ export default class SummaryTable extends Component {
 
   renderRow ({item}) {
     const isPositive = item.gain > 0 ? 1 : 0
+    const gainButtonWidth = Math.floor(Metrics.screenWidth/3)-2*Metrics.doubleBaseMargin
     // prepare prices
     const { prices, yAccessor } = this.props
     try {
@@ -108,9 +113,11 @@ export default class SummaryTable extends Component {
               <View style={[
                 styles.rowButtonContainer,
                 {"backgroundColor": isPositive ? Colors.positive : Colors.negative},
-                {"width": Math.floor(Metrics.screenWidth/3)-2*Metrics.doubleBaseMargin}
+                {"width": gainButtonWidth}
               ]}>
-                <Text style={styles.rowButtonLabel}>{item.returnVal}</Text>
+                <Text style={[
+                  styles.rowButtonLabel,
+                  {fontSize: Math.floor(1.5*gainButtonWidth/item.returnVal.length)}]}>{item.returnVal}</Text>
               </View>
             </TouchableOpacity>
           </View>

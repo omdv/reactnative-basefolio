@@ -14,9 +14,10 @@ import { Header, Icon } from 'react-native-elements'
 class PositionsScreen extends Component {
 
   renderRow ({item}) {
-    let dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit'};
+    const isPositive = item.gain > 0 ? 1 : 0
+    const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit'}
     return (
-      <View style={styles.rowContainer}>
+      <View style={[styles.rowContainer, {backgroundColor: isPositive ? Colors.positive: Colors.negative}]}>
         <View style={{flexDirection: 'column'}}>
           <Text style={styles.rowText}>{item.amount.toFixed(8)}</Text>
         </View>
@@ -36,26 +37,6 @@ class PositionsScreen extends Component {
     )
   }
 
-  renderHeader = () => {
-      <View style={styles.rowContainer}>
-        <View style={{flexDirection: 'column'}}>
-          <Text style={styles.rowText}>Amount</Text>
-        </View>
-        <View style={{flexDirection: 'column'}}>
-          <Text style={styles.rowText}>Buy price, $</Text>
-        </View>
-        <View style={{flexDirection: 'column'}}>
-          <Text style={styles.rowText}>Buy date</Text>
-        </View>
-        <View style={{flexDirection: 'column'}}>
-        <Text style={styles.rowText}>Sell price, $</Text>
-      </View>
-      <View style={{flexDirection: 'column'}}>
-        <Text style={styles.rowText}>Sell date</Text>
-      </View>
-      </View>
-  }
-
   renderEmpty = () => <Text style={styles.label}> No data </Text>
   keyExtractor = (item, index) => index
   oneScreensWorth = 20
@@ -68,26 +49,10 @@ class PositionsScreen extends Component {
       <ScrollView style={styles.container}>
         <View style={styles.header} >
           <View style={{width: 50}}><Icon name='chevron-left' color={Colors.navigation} onPress={() => goBack()}/></View>
-          <View style={{width: 50}}><Icon name='refresh' color={Colors.navigation} /></View> 
+          <View><Text style={styles.titleText}>Positions for {coin}</Text></View>
+          <View style={{width: 50}}></View> 
         </View>
         <View style={styles.content}>
-          <View style={styles.rowContainer}>
-          <View style={{flexDirection: 'column'}}>
-            <Text style={styles.rowText}>Amount</Text>
-          </View>
-          <View style={{flexDirection: 'column'}}>
-            <Text style={styles.rowText}>Buy price, $</Text>
-          </View>
-          <View style={{flexDirection: 'column'}}>
-            <Text style={styles.rowText}>Buy date</Text>
-          </View>
-          <View style={{flexDirection: 'column'}}>
-          <Text style={styles.rowText}>Sell price, $</Text>
-        </View>
-        <View style={{flexDirection: 'column'}}>
-          <Text style={styles.rowText}>Sell date</Text>
-        </View>
-        </View>
           <FlatList
             contentContainerStyle={styles.listContent}
             data={ positions[coin] }
