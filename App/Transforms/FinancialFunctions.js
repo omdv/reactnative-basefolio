@@ -1,3 +1,5 @@
+import * as _ from 'lodash'
+
 /**
  * Flip the order of the array
  * @param {array} array to flip
@@ -12,22 +14,42 @@ function flipArray (array) {
 }
 
 /**
+ * convert spot_price from object of objects to object
+ * @param {array} object of object of spot prices
+ * @return {array} object of spot prices
+ */
+function convertSpotPrices(spot_prices) {
+  let prices = {}  
+  // get latest price
+  for (coin in spot_prices) {
+    price = spot_prices[coin]
+    prices[coin] = price.USD
+  }
+  return prices
+}
+
+/**
+ * convert spot_price from object of objects to object
+ * @param {array} array of historical prices
+ * @param {array} number sparkline duration
+ * @return {array} array of hist_prices - no object
+ */
+function pricesForSparkLine(prices, period) {
+  return values = _.mapValues(prices, function (v) {
+    return v.slice(v.length-period, v.length).map(d => d.close)
+  })
+}
+
+/**
  * Calculate positions for assets and transactions
  * @param {array} array of assets
  * @param {array} array of transactions
- * @param {array} array of current prices
+ * @param {array} object of spot prices by asset
  * @return {array} array of positions
  */
-function getPositions(assets, transactions, prices, accounts) {
+function getPositions(assets, transactions, current_prices, accounts) {
   let positions = []
   let cleaned_positions = {}
-  let current_price = {}
-
-  // get latest price
-  for (coin in prices) {
-    price = prices[coin]
-    current_price[coin] = price.USD
-  }
 
   transactions.map((w,i) => {
     //initialize a new
@@ -40,14 +62,14 @@ function getPositions(assets, transactions, prices, accounts) {
         let amount = o.amount.amount
         let coin = o.amount.currency
         let buy_price = o.native_amount.amount / o.amount.amount
-        let gain = (current_price[coin] - buy_price) * amount
+        let gain = (current_prices[coin] - buy_price) * amount
         var position = {
           'type': 'Buy',
           'amount': amount,
           'coin': coin,
           'buy_price': buy_price,
           'cost': buy_price * amount,
-          'value': current_price[coin] * amount,
+          'value': current_prices[coin] * amount,
           'buy_date': Date.parse(o.created_at),
           'gain': gain,
           'return': gain / buy_price / amount,
@@ -74,10 +96,10 @@ function getPositions(assets, transactions, prices, accounts) {
  * Calculate summary for every coin
  * @param {array} array of assets
  * @param {array} array of positions
- * @param {array} array of accounts
+ * @param {object} object of current prices
  * @return {array} array of summaries per asset
  */
-function getSummaryByAsset(assets, positions) {
+function getSummaryByAsset(assets, positions, prices) {
   let result = []
 
   assets.map(a => {
@@ -91,7 +113,8 @@ function getSummaryByAsset(assets, positions) {
       'cost': cost,
       'value': value,
       'amount': pos.map(x => x.amount).reduce((a,b) => a+b),
-      'return': gain/cost * 100
+      'return': gain/cost * 100,
+      'price': prices[a]
     }
     result.push(summary)
   })
@@ -116,22 +139,43 @@ function getPortfolioSummary(summaries) {
 }
 
 /**
+ * Calculate returns
+ * @param {array} array of assets
+ * @param {array} array of transactions
+ * @param {array} array of accounts
+ * @param {array} array of spot prices
+ * @param {array} array of current prices
+ * @param {number} length of sparkline
+ * @return {object} object with all combined values
+ */
+export function getReturnsPlotData() {
+  return []
+}
+
+/**
  * Calculate total summary
  * @param {array} array of assets
  * @param {array} array of transactions
  * @param {array} array of accounts
- * @param {array} array of prices
+ * @param {array} array of spot prices
+ * @param {array} array of current prices
+ * @param {number} length of sparkline
  * @return {object} object with all combined values
  */
-export function getAnalysis(assets, transactions, accounts, prices) {
-  let positions = getPositions(assets, transactions, prices, accounts)
-  let summaries = getSummaryByAsset(assets, positions, accounts)
+export function getAnalysis(assets, transactions, accounts, spot_prices, hist_prices, sparkline_duration) {
+  let current_prices = convertSpotPrices(spot_prices)
+  let sparkline_data = pricesForSparkLine(hist_prices, sparkline_duration)
+  let positions = getPositions(assets, transactions, current_prices, accounts)
+  let summaries = getSummaryByAsset(assets, positions, current_prices)
   let portfolio = getPortfolioSummary(summaries)
 
   return {
     positions: positions,
     summaries: summaries,
-    portfolio: portfolio
+    portfolio: portfolio,
+    sparkline: {
+      data: sparkline_data
+    }
   }
 }
 

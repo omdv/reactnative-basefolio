@@ -14,32 +14,30 @@ import { delay } from 'redux-saga'
 import { call, take, put, all, fork, race } from 'redux-saga/effects'
 import CryptoPricesActions, { CryptoPricesTypes }  from '../Redux/CryptoPricesRedux'
 
-// Fetch current prices                                           
-function* getCurrentPriceData(api, action, millis) {
+// Fetch current prices                                      
+function* pollCurrentPrices(api, action, millis) {
   const { coins } = action
   let prices = {}
 
   let response = yield all(
     coins.map(coin => call(api.getCurrentPrices, coin))
   )
-
-  // check for summary status
   let ok = response.map(a => a.ok).reduce((a,b) => a && b)
-  
-  // convert to object
   for (i in response) {
     prices[coins[i]] = response[i].data
   }
 
   if (ok) {
     yield put(CryptoPricesActions.currPricesSuccess(prices))
+  } else {
+    yield put(CryptoPricesActions.currPricesFailure())
   }
 
   // delay
   yield call(delay, millis)
 }
 
-export function * getDailyHistPrices (api, action, millis) {
+function* pollDailyHistPrices(api, action, millis) {
   const { coins } = action
   let failure = false
   let prices = {}
@@ -68,10 +66,10 @@ export function * getDailyHistPrices (api, action, millis) {
 }
 
 // helper to define race
-function* currentPricesPoll(api, action, millis) {
+function* spotPricesPoll(api, action, millis) {
   while (true) {
     yield race([
-      call(getCurrentPriceData, api, action, millis),
+      call(pollCurrentPrices, api, action, millis),
       take(CryptoPricesTypes.PRICE_POLL_STOP)
     ])
   }
@@ -81,14 +79,25 @@ function* currentPricesPoll(api, action, millis) {
 function* historyPricesPoll(api, action, millis) {
   while (true) {
     yield race([
-      call(getDailyHistPrices, api, action, millis),
+      call(pollDailyHistPrices, api, action, millis),
       take(CryptoPricesTypes.PRICE_POLL_STOP)
     ])
   }
 }
 
 // called on PRICE_POLL_START
-export function* pricesPoller(api, action) {
-  yield fork(currentPricesPoll, api, action, 60*1000)
-  yield fork(historyPricesPoll, api, action, 300*1000)
+export function* pollPrices(api1, api2, action) {
+  yield fork(spotPricesPoll, api1, action, 300*1000)
+  yield fork(historyPricesPoll, api2, action, 6000*1000)
+}
+
+// one time refresh without delays
+export function* refreshAllPrices(api, action) {
+  yield call(pollCurrentPrices, api, action, 0)
+  yield call(pollDailyHistPrices, api, action, 0)
+}
+
+// one time refresh current without delays
+export function* refreshCurrentPrices(api, action) {
+  yield call(pollCurrentPrices, api, action, 0)
 }

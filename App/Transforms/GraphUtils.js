@@ -96,35 +96,27 @@ export function createLineGraph(
 /**
  * Creates a line graph SVG path that we can then use to render in our
  * React Native application with ART.
- * @param {Array.<Object>} options.data Array of data we'll use to create
- *   our graphs from.
- * @param {function} yAccessor Function to access the y value from our data.
+ * @param {Array} options.data Array of numbers
  * @param {number} width Width our graph will render to.
  * @param {number} height Height our graph will render to.
  * @return {Object} Object with data needed to render.
  */
 export function createSparkLine(
   data,
-  yAccessor,
   width,
   height,
 ) {
   const lengthDatum = data.length - 1
 
-  // Collect all y values.
-  const allYValues = data.reduce((all, datum) => {
-    all.push(yAccessor(datum))
-    return all
-  }, [])
-  // Get the min and max y value.
-  const extentY = d3Array.extent(allYValues)
+  // get Y range
+  const extentY = d3Array.extent(data)
 
   const scaleX = d3.scale.scaleLinear().domain([0, lengthDatum]).range([0, width])
   const scaleY = d3.scale.scaleLinear().domain([extentY[0], extentY[1]]).range([height, 0])  
 
   const lineShape = d3.shape.line()
     .x((d,i) => scaleX(i))
-    .y(d => scaleY(yAccessor(d)))
+    .y(d => scaleY(d))
 
   return {
     data,

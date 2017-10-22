@@ -24,7 +24,7 @@ import { login } from './LoginSagas'
 import { getUserAvatar } from './GithubSagas'
 import { getUserData, getAccounts, getAllData } from './AuthSagas'
 import { getTransactions} from './TransactionsSagas'
-import { getDailyHistPrices, currentPricesPoll, pricesPoller } from './CryptoPricesSagas'
+import { refreshAllPrices, refreshCurrentPrices, pollPrices } from './CryptoPricesSagas'
 
 
 /* ------------- API ------------- */
@@ -48,7 +48,8 @@ export default function * root () {
     takeLatest(AuthTypes.AUTH_REQUEST, getAllData, coinWalletApi),
     
     // Prices
-    takeLatest(CryptoPricesTypes.HIST_PRICES_REQUEST, getDailyHistPrices, pricesApi),
-    takeLatest(CryptoPricesTypes.PRICE_POLL_START, pricesPoller, pricesApi)
+    takeLatest(CryptoPricesTypes.PRICE_POLL_START, pollPrices, pricesApi, pricesApi),    
+    takeLatest(CryptoPricesTypes.CURR_PRICES_REQUEST, refreshCurrentPrices, pricesApi),
+    takeLatest(CryptoPricesTypes.PRICE_REFRESH_ALL_REQUEST, refreshAllPrices, pricesApi),    
   ]
 }

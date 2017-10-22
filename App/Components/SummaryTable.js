@@ -19,8 +19,8 @@ const {
 export default class SummaryTable extends Component {
   static propTypes = {
     summary: PropTypes.array,
-    prices: PropTypes.object,
-    yAccessor: PropTypes.func
+    sparkline: PropTypes.object,
+    current_prices: PropTypes.object,
   }
 
   constructor(props) {
@@ -35,7 +35,6 @@ export default class SummaryTable extends Component {
     })
     this.state = {
       summary: newSummary,
-      returnValLength: 6
     }
 
     // bind functions
@@ -44,26 +43,35 @@ export default class SummaryTable extends Component {
     this.assignReturnValue = this.assignReturnValue.bind(this)
   }
 
-  // init returnKey
-  returnKey = "return"
+  // init return index
+  returnIdx = 0
+
+  numToKey (item, num) {
+    switch (num) {
+      case 0:
+        return item.return.toFixed(2)+' %'
+      case 1:
+        return item.gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+      case 2:
+        return item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+    }
+  }
   
   assignReturnValue () {
     let { summary } = this.props
     let newSummary = []
-    let maxLength = 0
     summary.map(e => {
-      e.returnVal = this.returnKey === "return" ? e.return.toFixed(2)+' %' : e.gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+      e.returnVal = this.numToKey(e, this.returnIdx)
       newSummary.push(e)
-      maxLength = e.returnVal.length > maxLength ? e.returnVal.length : maxLength
     })
     this.setState({
       summary: newSummary,
-      returnValLength: maxLength
     })
   }
   
   flipButton () {
-    this.returnKey = this.returnKey === "return" ? "gain" : "return"
+    this.returnIdx = (this.returnIdx + 1) % 3
+    // this.returnKey = this.returnKey === "return" ? "gain" : "return"
     this.assignReturnValue()
   }
 
@@ -79,18 +87,19 @@ export default class SummaryTable extends Component {
   renderRow ({item}) {
     const isPositive = item.gain > 0 ? 1 : 0
     const gainButtonWidth = Math.floor(Metrics.screenWidth/3)-2*Metrics.doubleBaseMargin
-    // prepare prices
-    const { prices, yAccessor } = this.props
+    
+    // prepare sparkline data
+    const { sparkline } = this.props
     try {
-      price = prices ? prices[item.coin] : null
+      price = sparkline.data ? sparkline.data[item.coin] : null
     } catch(err) {
       price = null
     }
     // prepare other graph props
     const graphWidth = Math.floor(Metrics.screenWidth/3) - Metrics.doubleBaseMargin
     const graphHeight = Metrics.rowHeight - Metrics.doubleBaseMargin
-    // get path
-    const graph = price ? graphUtils.createSparkLine(price, yAccessor, graphWidth, graphHeight) : {path: null}
+    const graph = price ? graphUtils.createSparkLine(price, graphWidth, graphHeight) : {path: null}
+
     return (
       <TouchableOpacity style={styles.rowContainer} onPress={() => this.props.navigation.navigate('PositionsScreen', {coin: item.coin})}>
           <View style={{flexDirection: 'column', "width": Math.floor(Metrics.screenWidth/3)-Metrics.doubleBaseMargin}}>
@@ -109,7 +118,7 @@ export default class SummaryTable extends Component {
             </Surface>
           </View>
           <View style={{flexDirection: 'column'}}>
-            <TouchableOpacity onPress={this.flipButton}>
+            <TouchableOpacity onPress={this.flipButton} style={{width: gainButtonWidth}}>
               <View style={[
                 styles.rowButtonContainer,
                 {"backgroundColor": isPositive ? Colors.positive : Colors.negative},
@@ -117,7 +126,7 @@ export default class SummaryTable extends Component {
               ]}>
                 <Text style={[
                   styles.rowButtonLabel,
-                  {fontSize: Math.floor(1.5*gainButtonWidth/item.returnVal.length)}]}>{item.returnVal}</Text>
+                  {fontSize: Math.floor(1.3*gainButtonWidth/item.returnVal.length)}]}>{item.returnVal}</Text>
               </View>
             </TouchableOpacity>
           </View>
