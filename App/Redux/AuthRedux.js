@@ -5,7 +5,7 @@ import Immutable from 'seamless-immutable'
 
 const { Types, Creators } = createActions({
   authRequest: ['access_token', 'refresh_token'],
-  authSuccess: ['accounts'],
+  authSuccess: ['accounts', 'transactions'],
   authFailure: null,
   authRefreshRequest: ['refresh_token'],
   authRefreshSucess: ['access_token', 'refresh_token'],
@@ -22,22 +22,34 @@ export const INITIAL_STATE = Immutable({
   refresh_token: null,
   fetching: null,
   accounts: null,
+  transactions: null,
   error: null
 })
 
 /* ------------- Reducers ------------- */
 
 export const requestAccounts = (state, { access_token, refresh_token }) =>
-  state.merge({ fetching: true, access_token, refresh_token, accounts: null})
+  state.merge({
+    fetching: true, access_token, refresh_token,
+    accounts: null,
+    transactions: null
+  })
 
 export const successAccounts = (state, action) => {
-  const { accounts } = action
-  return state.merge({ fetching: false, error: null, accounts })
+  const { accounts, transactions } = action
+  return state.merge({
+    fetching: false, error: null,
+    accounts,
+    transactions
+  })
 }
 
 export const failureAccounts = state =>
-  state.merge({ fetching: false, error: true, accounts: null })
-
+  state.merge({
+    fetching: false, error: true,
+    accounts: null,
+    transactions: null
+  })
 
 export const refreshAuthRequest = (state) => (state, { refresh_token }) =>
   state.merge({ fetching: true, refresh_token, access_token: null})

@@ -1,4 +1,4 @@
-import { takeLatest } from 'redux-saga/effects'
+import { takeLatest, fork } from 'redux-saga/effects'
 import DebugConfig from '../Config/DebugConfig'
 
 /* ------------- API ------------- */
@@ -22,9 +22,9 @@ import { CryptoPricesTypes } from '../Redux/CryptoPricesRedux'
 import { startup } from './StartupSagas'
 import { login } from './LoginSagas'
 import { getUserAvatar } from './GithubSagas'
-import { getUserData, getAccounts } from './AuthSagas'
+import { getUserData, getAccounts, getAllData } from './AuthSagas'
 import { getTransactions} from './TransactionsSagas'
-import { getCryptoPrices } from './CryptoPricesSagas'
+import { getDailyHistPrices, currentPricesPoll, pricesPoller } from './CryptoPricesSagas'
 
 
 /* ------------- API ------------- */
@@ -32,7 +32,7 @@ import { getCryptoPrices } from './CryptoPricesSagas'
 const api = DebugConfig.useFixtures ? FixtureAPI : API.create()
 const coinWalletApi = CoinbaseWalletAPI.create()
 const coinAuthApi = CoinbaseAuthAPI.create()
-const pricesApi = CryptoPricesAPI.create() 
+const pricesApi = DebugConfig.useFixtures ? FixtureAPI : CryptoPricesAPI.create()
 
 /* ------------- Connect Types To Sagas ------------- */
 
@@ -41,11 +41,14 @@ export default function * root () {
     // some sagas only receive an action
     takeLatest(StartupTypes.STARTUP, startup),
     // takeLatest(LoginTypes.LOGIN_REQUEST, login),
-
     // some sagas receive extra parameters in addition to an action
     // takeLatest(GithubTypes.USER_REQUEST, getUserAvatar, api),
-    takeLatest(AuthTypes.AUTH_REQUEST, getAccounts, coinWalletApi),
-    takeLatest(TransactionsTypes.TRANSACTIONS_REQUEST, getTransactions, coinWalletApi),
-    takeLatest(CryptoPricesTypes.CRYPTO_PRICES_REQUEST, getCryptoPrices, pricesApi)
+    
+    // Accounts and transactions on login
+    takeLatest(AuthTypes.AUTH_REQUEST, getAllData, coinWalletApi),
+    
+    // Prices
+    takeLatest(CryptoPricesTypes.HIST_PRICES_REQUEST, getDailyHistPrices, pricesApi),
+    takeLatest(CryptoPricesTypes.PRICE_POLL_START, pricesPoller, pricesApi)
   ]
 }

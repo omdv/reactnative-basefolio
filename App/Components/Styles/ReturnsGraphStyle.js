@@ -4,8 +4,6 @@ import { Fonts, Colors, Metrics } from '../../Themes/'
 export default StyleSheet.create({
   container: {
     flex: 1,
-    height: 200,
-    backgroundColor: "#ffffff"
   },
   label: {
     fontWeight: 'bold',

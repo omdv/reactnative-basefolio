@@ -3,6 +3,7 @@ TODO:
 - Add double grouping - type + currency
 - Add positions acquired before coinbase, i.e. when coins are send to Coinbase
 - ADD acitivity indicators
+- ADD different failures when requesting API
 
 PRIOR TO RELEASE:
 - Clean AccountsRedux and Sagas - redundant

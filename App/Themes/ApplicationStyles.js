@@ -44,6 +44,14 @@ const ApplicationStyles = {
       ...Fonts.style.h2,
       fontSize: 14,
       color: Colors.text
+    },
+    header: {
+      marginTop: Metrics.baseMargin*3,
+      flexDirection: 'row',
+      justifyContent: 'space-between'
+    },
+    content: {
+      flex: 1,
     }
   },
   darkLabelContainer: {

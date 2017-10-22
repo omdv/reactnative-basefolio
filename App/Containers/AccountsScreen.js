@@ -14,18 +14,20 @@ import SummarySheet from '../Components/SummarySheet'
 import ReturnsGraph from '../Components/ReturnsGraph'
 
 // react-native elements
-import { Header } from 'react-native-elements'
+import { Header, Icon } from 'react-native-elements'
 
 // Redux
 import TransactionsActions from '../Redux/TransactionsRedux'
 import CryptoPricesActions from '../Redux/CryptoPricesRedux'
+import PositionsActions from '../Redux/PositionsRedux'
 
 // Styles
 import styles from './Styles/AccountsScreenStyle'
-import { Images, Metrics } from '../Themes'
+import { Images, Metrics, Colors } from '../Themes'
 
 // Calculation Functions
 import { getAnalysis } from '../Transforms/FinancialFunctions'
+import * as _ from 'lodash'
 
 class AccountsScreen extends Component {
   static propTypes = {
@@ -35,18 +37,14 @@ class AccountsScreen extends Component {
     hist_prices: PropTypes.object,
     current_prices: PropTypes.object,    
     getTransactions: PropTypes.func,
-    getPrices: PropTypes.func
+    getPrices: PropTypes.func,
+    savePositions: PropTypes.func
   }
   
   constructor (props) {
     super(props)
-    let { accounts, transactions, hist_prices, current_prices } = props
+    let { accounts, transactions, current_prices } = props
     // defaults for testing
-    let default_hist_prices = {
-      'BTC': [{'close': 4800}],
-      'ETH': [{'close': 310}],
-      'LTC': [{'close': 65}]
-    }
     let default_current_prices = {
       'BTC': {'USD': 4800},
       'ETH': {'USD': 310},
@@ -59,7 +57,6 @@ class AccountsScreen extends Component {
       assets: ['BTC', 'ETH', 'LTC'],
       accounts: accounts ? accounts : default_accounts,
       transactions: transactions ? transactions : default_transactions,
-      hist_prices: hist_prices ? hist_prices : default_hist_prices,
       current_prices: current_prices ? current_prices : default_current_prices,
       summary: {
         positions: [],
@@ -84,7 +81,6 @@ class AccountsScreen extends Component {
 
   componentDidMount () {
     this.props.startPricePolling(this.state.assets)
-    this.props.getPrices(this.state.assets)
     const { assets, current_prices, transactions, accounts } = this.state
     summary = getAnalysis(
       assets,
@@ -92,6 +88,7 @@ class AccountsScreen extends Component {
       accounts,
       current_prices)
     this.setState({summary: summary})
+    this.props.savePositions(summary.positions)
   }
 
   componentWillUnmount () {
@@ -107,6 +104,9 @@ class AccountsScreen extends Component {
     //   this.props.prices = prices ? prices : this.props.prices      
     // }
     
+    // Re-assign hist_prices
+    this.props.hist_prices = nextProps.hist_prices ? nextProps.hist_prices : this.props.hist_prices
+
     // Test mode
     let current_prices = nextProps.current_prices ? nextProps.current_prices : this.state.current_prices
     const { transactions, accounts } = this.state
@@ -119,26 +119,42 @@ class AccountsScreen extends Component {
         transactions,
         accounts,
         current_prices)
-      this.setState({summary: summary})
+    this.setState({summary: summary})
+    this.props.savePositions(summary.positions)
+  }
+
+  sparklineData (prices, period) {
+    return _.mapValues(prices, function (v) {
+      return v.slice(v.length-period, v.length)
+    })
   }
 
   render () {
     const { summary } = this.state
+    const { hist_prices } = this.props
+    // Prices for graphs
+    const sparkline_data = hist_prices ? this.sparklineData(hist_prices, 14) : null
+    const returns = hist_prices ? hist_prices['BTC'] : null
     return (
       <ScrollView style={styles.container}>
-      <View>
-        <SummarySheet summary={ summary.portfolio } />
-        <View style={styles.divider} />
-        <ReturnsGraph width={200} height={100} />
-        <View style={styles.divider} />
-        <View style={styles.graphWrapper}></View>
-        <View style={styles.divider} />
-        <SummaryTable summary={ summary.summaries } />
-      </View>
+        <View style={styles.header} >
+          <View style={{width: 50}}><Icon name='settings' color={Colors.navigation} /></View>
+          <View style={{width: 50}}><Icon name='refresh' color={Colors.navigation} /></View> 
+        </View>
+        <View style={styles.content}>
+          <SummarySheet summary={ summary.portfolio } />
+          <ReturnsGraph datum={returns} xAccessor={d => new Date(d.time)} yAccessor={d => d.close} width={Metrics.screenWidth} height={100} />
+          <View style={styles.divider} />
+          <View style={styles.graphWrapper}></View>
+          <View style={styles.divider} />
+          <SummaryTable summary={ summary.summaries } yAccessor={d => d.close} prices={sparkline_data} navigation={this.props.navigation} />
+        </View>
       </ScrollView>
     )
   }
 }
+
+
 
 const mapStateToProps = (state) => {
   return {
@@ -155,7 +171,8 @@ const mapDispatchToProps = (dispatch) => {
     getTransactions: () => dispatch(TransactionsActions.transactionsRequest()),
     getPrices: (coins) => dispatch(CryptoPricesActions.histPricesRequest(coins)),
     startPricePolling: (coins) => dispatch(CryptoPricesActions.pricePollStart(coins)),
-    stopPricePolling: () => dispatch(CryptoPricesActions.pricePollStop())  
+    stopPricePolling: () => dispatch(CryptoPricesActions.pricePollStop()),
+    savePositions: (positions) =>dispatch(PositionsActions.positionsSave(positions))
   }
 }
 

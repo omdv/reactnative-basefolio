@@ -11,10 +11,10 @@ export default StyleSheet.create({
   },
   rowContainer: {
     flex: 1,
-    height: 55,
+    height: Metrics.rowHeight,
     flexDirection: 'row',
-    margin: 10,
-    backgroundColor: "grey"
+    margin: Metrics.baseMargin,
+    backgroundColor: Colors.background
   },
 	rowBoldLabel: {
     fontWeight: 'bold',
@@ -35,8 +35,8 @@ export default StyleSheet.create({
     textAlign: 'center',
   },
   rowButtonContainer: {
-    margin: 10,
-    height: 35,
+    margin: Metrics.baseMargin,
+    height: Metrics.rowHeight - Metrics.doubleBaseMargin,
     justifyContent: 'center',
     marginHorizontal: Metrics.section,
     padding: 5,

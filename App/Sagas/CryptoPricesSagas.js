@@ -19,9 +19,6 @@ function* getCurrentPriceData(api, action, millis) {
   const { coins } = action
   let prices = {}
 
-  // delay
-  yield call(delay, millis)
-
   let response = yield all(
     coins.map(coin => call(api.getCurrentPrices, coin))
   )
@@ -37,15 +34,15 @@ function* getCurrentPriceData(api, action, millis) {
   if (ok) {
     yield put(CryptoPricesActions.currPricesSuccess(prices))
   }
+
+  // delay
+  yield call(delay, millis)
 }
 
 export function * getDailyHistPrices (api, action, millis) {
   const { coins } = action
   let failure = false
   let prices = {}
-
-  // delay
-  yield call(delay, millis)
 
   let response = yield all(
     coins.map(coin => call(api.getDailyHistPrices, coin))
@@ -65,6 +62,9 @@ export function * getDailyHistPrices (api, action, millis) {
   } else {
     yield put(CryptoPricesActions.histPricesFailure())
   }
+
+  // delay
+  yield call(delay, millis)
 }
 
 // helper to define race
@@ -89,6 +89,6 @@ function* historyPricesPoll(api, action, millis) {
 
 // called on PRICE_POLL_START
 export function* pricesPoller(api, action) {
-  yield fork(currentPricesPoll, api, action, 5*1000)
-  yield fork(historyPricesPoll, api, action, 20*1000)
+  yield fork(currentPricesPoll, api, action, 60*1000)
+  yield fork(historyPricesPoll, api, action, 300*1000)
 }

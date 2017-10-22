@@ -23,7 +23,10 @@ const colors = {
   banner: '#5F3E63',
   text: '#E0D7E5',
   positive: '#006837',
-  negative: '#d73027'
+  negative: '#d73027',
+  graph: '#e73536',
+  sparkline: 'rgba(255,255,255, 0.75)',
+  navigation: 'grey'  
 }
 
 export default colors
