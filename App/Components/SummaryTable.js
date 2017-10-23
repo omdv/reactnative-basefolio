@@ -45,6 +45,7 @@ export default class SummaryTable extends Component {
 
   // init return index
   returnIdx = 0
+  maxLength = 0
 
   numToKey (item, num) {
     switch (num) {
@@ -62,16 +63,17 @@ export default class SummaryTable extends Component {
     let newSummary = []
     summary.map(e => {
       e.returnVal = this.numToKey(e, this.returnIdx)
+      this.maxLength = e.returnVal.length > this.maxLength ? e.returnVal.length : this.maxLength
       newSummary.push(e)
     })
     this.setState({
       summary: newSummary,
+
     })
   }
   
   flipButton () {
     this.returnIdx = (this.returnIdx + 1) % 3
-    // this.returnKey = this.returnKey === "return" ? "gain" : "return"
     this.assignReturnValue()
   }
 
@@ -121,12 +123,12 @@ export default class SummaryTable extends Component {
             <TouchableOpacity onPress={this.flipButton} style={{width: gainButtonWidth}}>
               <View style={[
                 styles.rowButtonContainer,
-                {"backgroundColor": isPositive ? Colors.positive : Colors.negative},
+                {"backgroundColor": this.returnIdx == 2 ? Colors.navigation : (isPositive ? Colors.positive : Colors.negative)},
                 {"width": gainButtonWidth}
               ]}>
                 <Text style={[
                   styles.rowButtonLabel,
-                  {fontSize: Math.floor(1.3*gainButtonWidth/item.returnVal.length)}]}>{item.returnVal}</Text>
+                  {fontSize: Math.floor(1.5*gainButtonWidth/this.maxLength)}]}>{item.returnVal}</Text>
               </View>
             </TouchableOpacity>
           </View>

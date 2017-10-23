@@ -24,6 +24,7 @@ const create = (baseURL = 'https://min-api.cryptocompare.com/data/') => {
   // way at this level.
   //
 
+  // https://min-api.cryptocompare.com/data/histoday?fsym=BTC&tsym=USD&e=CCCAGG&allData=True
   const getDailyHistPrices = (coin) => api.get(
     'histoday?tsym=USD&limit=60&aggregate=3&e=Coinbase&extraParams=cryptofolio&fsym='+coin,
     {}, {})

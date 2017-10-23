@@ -2,6 +2,19 @@ import * as _ from 'lodash'
 
 /**
  * Flip the order of the array
+ * @param {date} date
+ * @return {string} formatted string YYYY-MM-DD
+ */
+function dateToYMD(date) {
+  date = new Date(date)
+  var d = date.getDate()
+  var m = date.getMonth() + 1
+  var y = date.getFullYear()
+  return '' + y + '-' + (m<=9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d)
+}
+
+/**
+ * Flip the order of the array
  * @param {array} array to flip
  * @return {array} flipped array
  */
@@ -38,6 +51,48 @@ function pricesForSparkLine(prices, period) {
   return values = _.mapValues(prices, function (v) {
     return v.slice(v.length-period, v.length).map(d => d.close)
   })
+}
+
+/**
+ * Calculate positions for assets and transactions
+ * @param {array} array of assets
+ * @param {array} array of array of transactions per wallet
+ * @return {object} object by asset with buy/sell transactions 
+ */
+function processCoinbaseTransactions(assets, accounts, transactions) {
+  let positions = []
+  let cleaned_positions = {}
+
+  transactions.map((w,i) => {
+    //initialize a new
+    positions[i] = []
+    // move older records to top
+    wallet = flipArray(w)
+    
+    wallet.map(o => {
+      if (o.type === "buy" || o.type === "sell") {
+        positions[i].push({
+          'order_type': o.type,
+          'amount': o.type === "buy" ? o.amount.amount : -o.amount.amount,
+          'coin': o.amount.currency,
+          'price':  o.native_amount.amount / o.amount.amount,
+          'cost_basis': o.native_amount.amount,
+          'date': Date.parse(o.created_at),
+          'day': dateToYMD( Date.parse(o.created_at))
+        })
+      }
+      positions[i].sort((a,b) => (a.date - b.date))
+    })
+  })
+
+  // remove accounts with no positions
+  assets.map(a => {
+    let idx = accounts.findIndex(x => x.name === a + ' Wallet')
+    let pos = positions[idx]
+    cleaned_positions[a] = pos
+  })
+
+  return cleaned_positions
 }
 
 /**
@@ -140,16 +195,28 @@ function getPortfolioSummary(summaries) {
 
 /**
  * Calculate returns
- * @param {array} array of assets
- * @param {array} array of transactions
- * @param {array} array of accounts
- * @param {array} array of spot prices
- * @param {array} array of current prices
- * @param {number} length of sparkline
- * @return {object} object with all combined values
+ * @param {object} transactions - cleaned transactions for every asset with array of objects
+ * @param {object} hist_prices - objects of arrays with key being asset
+ * @return {object} Daily returns for portfolio
  */
-export function getReturnsPlotData() {
-  return []
+export function getReturnsByDate(transactions, hist_prices) {
+  let result = []
+  if (hist_prices) {
+    // // add date to prices
+    // let prices = {}
+    // for (coin in hist_prices) {
+    //   prices[coin] = _.map(hist_prices[coin], e => {
+    //     return _.extend({}, e, {date: dateToYMD(e.time*1000)})
+    //   })
+    // }
+    // create a merged instance
+    let BTC = _.mapValues(_.keyBy(hist_prices['BTC'], 'time'), (o) => {return {'BTC': o}})
+    let ETH = _.mapValues(_.keyBy(hist_prices['ETH'], 'time'), (o) => {return {'ETH': o}})
+    let LTC = _.mapValues(_.keyBy(hist_prices['LTC'], 'time'), (o) => {return {'LTC': o}})
+    let merged_prices = _.merge(BTC, ETH, LTC)   
+    let bp =true
+  }
+  return result
 }
 
 /**
@@ -164,10 +231,12 @@ export function getReturnsPlotData() {
  */
 export function getAnalysis(assets, transactions, accounts, spot_prices, hist_prices, sparkline_duration) {
   let current_prices = convertSpotPrices(spot_prices)
+  let processed_transactions = processCoinbaseTransactions(assets, accounts, transactions)
   let sparkline_data = pricesForSparkLine(hist_prices, sparkline_duration)
   let positions = getPositions(assets, transactions, current_prices, accounts)
   let summaries = getSummaryByAsset(assets, positions, current_prices)
   let portfolio = getPortfolioSummary(summaries)
+  let returns = getReturnsByDate(processed_transactions, hist_prices)
 
   return {
     positions: positions,
