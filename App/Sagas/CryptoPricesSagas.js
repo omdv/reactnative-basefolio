@@ -13,6 +13,7 @@
 import { delay } from 'redux-saga'
 import { call, take, put, all, fork, race } from 'redux-saga/effects'
 import CryptoPricesActions, { CryptoPricesTypes }  from '../Redux/CryptoPricesRedux'
+import TransformHistPrices from '../Transforms/TransformHistPrices'
 
 // Fetch current prices                                      
 function* pollCurrentPrices(api, action, millis) {
@@ -53,6 +54,8 @@ function* pollDailyHistPrices(api, action, millis) {
   for (i in response) {
     prices[coins[i]] = response[i].data.Data
   }
+
+  prices = TransformHistPrices(prices)
   
   // success?
   if (ok) {
