@@ -77,8 +77,8 @@ function processCoinbaseTransactions(assets, accounts, transactions) {
           'coin': o.amount.currency,
           'price':  o.native_amount.amount / o.amount.amount,
           'cost_basis': o.native_amount.amount,
-          'date': Date.parse(o.created_at),
-          'day': dateToYMD( Date.parse(o.created_at))
+          'time': Date.parse(o.created_at),
+          'date': dateToYMD( Date.parse(o.created_at))
         })
       }
       positions[i].sort((a,b) => (a.date - b.date))
@@ -195,26 +195,113 @@ function getPortfolioSummary(summaries) {
 
 /**
  * Calculate returns
+ * @param {array} assets - list of assets to operate with
  * @param {object} transactions - cleaned transactions for every asset with array of objects
  * @param {object} hist_prices - objects of arrays with key being asset
  * @return {object} Daily returns for portfolio
  */
-export function getReturnsByDate(transactions, hist_prices) {
+function getReturnsByDate(assets, transactions, hist_prices) {
   let result = []
   if (hist_prices) {
-    // // add date to prices
-    // let prices = {}
-    // for (coin in hist_prices) {
-    //   prices[coin] = _.map(hist_prices[coin], e => {
-    //     return _.extend({}, e, {date: dateToYMD(e.time*1000)})
-    //   })
-    // }
-    // create a merged instance
-    let BTC = _.mapValues(_.keyBy(hist_prices['BTC'], 'time'), (o) => {return {'BTC': o}})
-    let ETH = _.mapValues(_.keyBy(hist_prices['ETH'], 'time'), (o) => {return {'ETH': o}})
-    let LTC = _.mapValues(_.keyBy(hist_prices['LTC'], 'time'), (o) => {return {'LTC': o}})
-    let merged_prices = _.merge(BTC, ETH, LTC)   
-    let bp =true
+    // add date to prices
+    let prices = {}
+    for (coin in hist_prices) {
+      prices[coin] = _.map(hist_prices[coin], e => {
+        return _.extend({}, e, {date: dateToYMD(e.time*1000)})
+      })
+    }
+
+    // flatten transactions and groupby date
+    transactions = _.groupBy(_.reduce(_.values(transactions),(s,x) => _.concat(s,x), []), 'date')
+    
+    // create a merged price object on dates
+    let full_frame = _.merge(
+      _.mapValues(_.keyBy(prices['BTC'], 'date'), (o) => {return {'BTC': o}}),
+      _.mapValues(_.keyBy(prices['ETH'], 'date'), (o) => {return {'ETH': o}}),
+      _.mapValues(_.keyBy(prices['LTC'], 'date'), (o) => {return {'LTC': o}}),
+      _.mapValues(transactions, (o) => {return {'orders': o}})
+    )
+
+    // change date keys to timeepoch for sorting, etc
+    // full_frame = _.mapKeys(full_frame, (v,k) => new Date(k).getTime()/1000) // either as object of objects
+    full_frame = _.sortBy(_.values(full_frame), (o) => o.BTC.time) // or as array of object
+
+    // main loop
+    let portfolio = []
+    for (var i=0; i<full_frame.length; i++) {
+      date = full_frame[i]
+      // either initiate portfolio with first order or continue if portfolio exists
+      if ("orders" in date || portfolio.length > 0 ) {
+        // init portfolio or take previous one
+        if (portfolio.length === 0) {
+          ptf = _.mapValues({"BTC":{}, "ETH": {}, "LTC": {}, "portfolio": {}}, o => {return {
+            "amount": 0,
+            "cost_basis": 0,
+            "current_value": 0,
+            "gain": 0,
+            "open_gain": 0,
+            "closed_gain": 0,
+            "return": 0
+          }})
+        } else {
+          ptf = portfolio[portfolio.length-1]
+        }
+
+        // update portfolio with new values
+        if ("orders" in date) {
+          // loop over all orders and update ptf for given date
+          for (var order_idx=0; order_idx <date.orders.length; order_idx++ ) {
+            order = date.orders[order_idx]
+            
+            // some commonly used variables
+            let coin = order.coin
+            let coin_price = date[coin].close
+
+            // update amounts
+            if (order.order_type === "buy") {
+              // update positions for coin first
+              ptf[coin].cost_basis += order.cost_basis
+              ptf[coin].amount += order.amount
+            } else if (order.order_type === "sell") {
+              // Sell logic
+            }
+          }
+        }
+          
+        // Now update prices and gains for all positions
+        _.forEach(assets, v => {
+          ptf[v].current_value = ptf[v].amount * date[v].close
+          ptf[v].open_gain = ptf[v].current_value - ptf[v].cost_basis
+          ptf[v].gain = ptf[v].open_gain - ptf[v].closed_gain
+          ptf[v].return = ptf[v].gain / ptf[v].cost_basis * 100
+        })
+
+        // Run summary for portfolio and update
+        ptf["portfolio"].current_value = _.reduce(ptf, (res, v, k) => {
+          return k !== "portfolio" ? res+v.current_value : res
+          // if (k !== "portfolio") {
+          //   res += v.current_value
+          // }
+          // return res
+        }, 0)
+        ptf["portfolio"].cost_basis = _.reduce(ptf, (res, v, k) => {
+          return k !== "portfolio" ? res+v.cost_basis : res
+          // if (k !== "portfolio") {
+          //   res += v.cost_basis
+          // }
+          // return res
+        }, 0)
+        ptf["portfolio"].open_gain = ptf["portfolio"].current_value - ptf["portfolio"].cost_basis
+        ptf["portfolio"].gain = ptf["portfolio"].open_gain + ptf["portfolio"].closed_gain
+        ptf["portfolio"].return = ptf["portfolio"].gain / ptf["portfolio"].cost_basis * 100
+
+        // push
+        portfolio.push(ptf)
+      }
+    }
+
+    // prepare data for graphs
+    
   }
   return result
 }
@@ -236,7 +323,7 @@ export function getAnalysis(assets, transactions, accounts, spot_prices, hist_pr
   let positions = getPositions(assets, transactions, current_prices, accounts)
   let summaries = getSummaryByAsset(assets, positions, current_prices)
   let portfolio = getPortfolioSummary(summaries)
-  let returns = getReturnsByDate(processed_transactions, hist_prices)
+  let returns = getReturnsByDate(assets, processed_transactions, hist_prices)
 
   return {
     positions: positions,
