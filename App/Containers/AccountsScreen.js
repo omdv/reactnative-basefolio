@@ -53,7 +53,7 @@ class AccountsScreen extends Component {
     }
     let default_accounts = require('../Fixtures/accounts.json')
     let default_transactions = require('../Fixtures/transactions.json')
-    let default_summary = require('../Fixtures/default_summary.json')
+    let default_financial_summary = require('../Fixtures/default_summary.json')
     
     // initial state
     this.state = {
@@ -64,14 +64,14 @@ class AccountsScreen extends Component {
       transactions: transactions ? transactions : default_transactions,
       current_prices: current_prices ? current_prices : default_current_prices,
       hist_prices: hist_prices,
-      summary: default_summary
+      financial_summary: default_financial_summary
     }
     this.callFinancialAnalysis = this.callFinancialAnalysis.bind(this)
   }
 
   callFinancialAnalysis() {
     const { assets, current_prices, transactions, accounts, sparklines_duration, hist_prices } = this.state
-    summary = getAnalysis(
+    financial_summary = getAnalysis(
       assets,
       transactions,
       accounts,
@@ -79,8 +79,8 @@ class AccountsScreen extends Component {
       hist_prices,
       sparklines_duration
     )
-    this.setState({summary: summary})
-    this.props.savePositions(summary.positions)
+    this.setState({financial_summary: financial_summary})
+    this.props.savePositions(financial_summary.positions)
   }
 
   componentDidMount () {
@@ -115,7 +115,7 @@ class AccountsScreen extends Component {
   }
 
   render () {
-    const { summary, assets } = this.state
+    const { financial_summary, assets } = this.state
     const { refreshCurrentPrices } = this.props
     return (
       <ScrollView style={styles.container}>
@@ -124,21 +124,27 @@ class AccountsScreen extends Component {
           <View style={{width: 50}}><Icon name='refresh' color={Colors.navigation} onPress={() => refreshCurrentPrices(assets)} /></View> 
         </View>
         <View style={styles.content}>
-          <SummarySheet summary={summary.portfolio} />
-          <ReturnsGraph datum={summary.returns} xAccessor={d => new Date(d.time)} yAccessor={d => d.close} width={Metrics.screenWidth} height={100} />
+          <SummarySheet summary={financial_summary.portfolio} />
           <View style={styles.divider} />
+          <ReturnsGraph
+            datum={financial_summary.returngraph.data}
+            xAccessor={d => new Date(d.time)}
+            yAccessor={d => d.gain}
+            width={Metrics.screenWidth}
+            height={100} />
           <View style={styles.graphWrapper}></View>
           <View style={styles.divider} />
           <SummaryTable
-            summary={summary.summaries}
-            sparkline={summary.sparkline}
-            current_prices={summary.current_prices}
+            summary={financial_summary.summaries}
+            sparkline={financial_summary.sparkline}
+            current_prices={financial_summary.current_prices}
             navigation={this.props.navigation} />
         </View>
       </ScrollView>
     )
   }
 }
+
 
 
 

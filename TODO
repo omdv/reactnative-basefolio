@@ -1,10 +1,12 @@
 TODO:
+- request historical prices only for dates when orders are active - depends on whether I'll allow to add transactions manually later?
 REMOVE - Add positions acquired before coinbase, i.e. when coins are send to Coinbase
-- ADD acitivity indicators
-- ADD different failures when requesting API
+- acitivity indicators
+- different failures when requesting API
 
 PRIOR TO RELEASE:
 - Clean AccountsRedux and Sagas - redundant
+- Remove if (hist_prices) in Financial Functions
 
 General:
 - Define features and screens clearly and start working on MVP

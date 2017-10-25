@@ -43,6 +43,25 @@ function convertSpotPrices(spot_prices) {
 
 /**
  * convert spot_price from object of objects to object
+ * @param {array} object of object of spot prices
+ * @param {object} object of objects of historical prices
+ * @return {array} object of spot prices
+ */
+function appendSpotPricesToHistorical(spot_prices, hist_prices) {
+  let new_prices = {}
+  let time = new Date().getTime()/1000
+  if (hist_prices) {
+    for (coin in spot_prices) {
+      prices = hist_prices[coin]
+      prices = prices.concat([{"close": spot_prices[coin], "time": time}])
+      new_prices[coin] = prices
+    }
+  }
+  return new_prices
+}
+
+/**
+ * convert spot_price from object of objects to object
  * @param {array} array of historical prices
  * @param {array} number sparkline duration
  * @return {array} array of hist_prices - no object
@@ -201,8 +220,24 @@ function getPortfolioSummary(summaries) {
  * @return {object} Daily returns for portfolio
  */
 function getReturnsByDate(assets, transactions, hist_prices) {
-  let result = []
-  if (hist_prices) {
+  // init empty one
+  let result = {
+    portfolio: {
+      gain: 0,
+      current_value: 0,
+      return: 0
+    },
+    summaries: [{
+      coin: "None",
+      gain:0,
+      cost:0,
+      current_value:0 ,
+      amount:0,
+      return:0
+    }]
+  }
+  // check if hist_prices exist
+  if (Object.keys(hist_prices).length > 0) {
     // add date to prices
     let prices = {}
     for (coin in hist_prices) {
@@ -211,8 +246,9 @@ function getReturnsByDate(assets, transactions, hist_prices) {
       })
     }
 
-    // flatten transactions and groupby date
-    transactions = _.groupBy(_.reduce(_.values(transactions),(s,x) => _.concat(s,x), []), 'date')
+    // flatten transactions, filter only buy/sell and group by date
+    transactions = _.reduce(_.values(transactions),(s,x) => _.concat(s,x), [])
+    transactions = _.groupBy(transactions, 'date')
     
     // create a merged price object on dates
     let full_frame = _.merge(
@@ -272,8 +308,9 @@ function getReturnsByDate(assets, transactions, hist_prices) {
         _.forEach(assets, v => {
           ptf[v].current_value = ptf[v].amount * date[v].close
           ptf[v].open_gain = ptf[v].current_value - ptf[v].cost_basis
-          ptf[v].gain = ptf[v].open_gain - ptf[v].closed_gain
+          ptf[v].gain = ptf[v].open_gain + ptf[v].closed_gain
           ptf[v].return = ptf[v].gain / ptf[v].cost_basis * 100
+          ptf[v].price = date[v].close
         })
 
         // Run summary for portfolio and update
@@ -295,13 +332,24 @@ function getReturnsByDate(assets, transactions, hist_prices) {
         ptf["portfolio"].gain = ptf["portfolio"].open_gain + ptf["portfolio"].closed_gain
         ptf["portfolio"].return = ptf["portfolio"].gain / ptf["portfolio"].cost_basis * 100
 
+        // add time and date
+        ptf["portfolio"].time = date.BTC.time
+        ptf["portfolio"].date = date.BTC.date
+
         // push
         portfolio.push(ptf)
       }
     }
 
     // prepare data for graphs
-    
+    let latest = portfolio[portfolio.length-1]
+    let summaries = assets.reduce((o,k) => { o[k] = latest[k]; return o }, {})
+    summaries = _.map(summaries, (v,k) => _.assign(v,{coin: k}))
+    result = {
+      returnsdata: _.values(_.mapValues(portfolio, o => o.portfolio)),
+      portfolio: latest.portfolio,
+      summaries: summaries
+    }
   }
   return result
 }
@@ -317,93 +365,36 @@ function getReturnsByDate(assets, transactions, hist_prices) {
  * @return {object} object with all combined values
  */
 export function getAnalysis(assets, transactions, accounts, spot_prices, hist_prices, sparkline_duration) {
-  let current_prices = convertSpotPrices(spot_prices)
-  let processed_transactions = processCoinbaseTransactions(assets, accounts, transactions)
+  // get sparkline data from raw historicals
   let sparkline_data = pricesForSparkLine(hist_prices, sparkline_duration)
+
+  // get spot prices and append to historical
+  let current_prices = convertSpotPrices(spot_prices)
+  let prices = appendSpotPricesToHistorical(current_prices, hist_prices)
+
+  // filter buy/sell transactions, parse dates, adjust amount for sell
+  let processed_transactions = processCoinbaseTransactions(assets, accounts, transactions)
+  
+  // get returns by positions and for the portfolio
+  let returns = getReturnsByDate(assets, processed_transactions, prices)
+  
+
+  // review this functions
+  // TODO: merge positions with getReturnsByDate
   let positions = getPositions(assets, transactions, current_prices, accounts)
-  let summaries = getSummaryByAsset(assets, positions, current_prices)
-  let portfolio = getPortfolioSummary(summaries)
-  let returns = getReturnsByDate(assets, processed_transactions, hist_prices)
+  // let summaries = getSummaryByAsset(assets, positions, current_prices)
+  // let portfolio = getPortfolioSummary(summaries)
 
   return {
-    positions: positions,
-    summaries: summaries,
-    portfolio: portfolio,
     sparkline: {
       data: sparkline_data
-    }
+    },
+    summaries: returns.summaries,
+    portfolio: returns.portfolio,
+    returngraph: {
+      data: returns.returnsdata
+    },
+    current_prices: current_prices,
+    positions: positions
   }
 }
-
-  // // calculate positions
-  // // uses flat transactions
-  // _getPositionsFlat () {
-  //   let assets = this.state.assets
-  //   let trans = this.state.transactions
-  //   let positions = {}
-
-  //   assets.map(coin => {
-  //     positions[coin] = []
-      
-  //     // first get long positions
-  //     trans.map(order => {
-  //       if (order.type === "buy" && order.amount.currency === coin && order.status === "completed") {
-  //         var position = {
-  //           'amount': order.amount.amount,
-  //           'buy_price': order.native_amount.amount / order.amount.amount,
-  //           'date': Date.parse(order.updated_at)
-  //         }
-  //         positions[coin].push(position)
-  //       }
-  //     })
-  //     positions[coin].sort((a,b) => a.buy_price - b.buy_price)
-
-  //   })
-  //   return positions
-  // }
-
-  // _getBalanceByAssetAndType (trans) {
-  //   cf = crossfilter(trans)
-
-  //   var typeDimension = cf.dimension(function(d) {return d.type})
-  //   var coinDimension = cf.dimension(function(d) {return d.amount.currency})
-
-  //   // console.log(coinDimension.group().reduceSum(function(d) {d.amount.amount}).all())
-  //   let res = coinDimension.group().reduce(
-  //     (p,v) => {
-  //       p.buyAmount += v.type === "buy" ? v.amount.amount : 0
-  //       return p
-  //     },
-  //     (p,v) => {
-  //       p.buyAmount -= v.type === "buy" ? v.amount.amount : 0
-  //       return p
-  //     },
-  //     () => ({'buyAmount': 0})
-  //   )
-  //   console.log(res.all())
-  //   // console.log(typeDimension.filter(function(d) {return d === "buy"}).size)
-  // }
-
-  // _getBalancesByAsset (accounts) {
-  //   var result = {}
-  //   let assets = ['BTC', 'ETH', 'LTC', 'USD']
-  //   assets.map((coin) => {
-  //     let val = 0
-  //     let balances = accounts
-  //       .filter(x => x.balance.currency === coin)
-  //       .map(x => Number(x.balance.amount))
-  //     result[coin] = balances.reduce((x,y) => x+y)
-  //     })
-  //   return result
-  // }
-
-  // _processTransactions () {
-  //   // flatten and convert to numeric
-  //   trans = trans.map(x => x.data)
-  //   trans = trans.reduce((x,y) => x.concat(y))
-  //   trans.map(e => {
-  //     e.amount.amount = Number(e.amount.amount)
-  //     e.native_amount.amount = Number(e.native_amount.amount)
-  //   })
-  //   return trans
-  // }

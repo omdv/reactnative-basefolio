@@ -15,7 +15,7 @@ export default class SummarySheet extends Component {
     return (
       <View style={styles.container}>
           <View>
-            <Text style={[styles.totalValue, {"color": isPositive ? Colors.positive : Colors.negative}]}>{summary.value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
+            <Text style={[styles.totalValue, {"color": isPositive ? Colors.positive : Colors.negative}]}>{summary.current_value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
           </View>
           <View>
             <Text style={[styles.returnValue, {"color": isPositive ? Colors.positive : Colors.negative}]}>
