@@ -12,6 +12,7 @@
 
 import { call, put, all } from 'redux-saga/effects'
 import AuthActions from '../Redux/AuthRedux'
+import CryptoPricesActions, { CryptoPricesTypes }  from '../Redux/CryptoPricesRedux'
 import TransformTransactions from '../Transforms/TransformTransactions'
 
 export function * getUserData (api, action) {

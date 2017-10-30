@@ -12,7 +12,9 @@ export default StyleSheet.create({
     resizeMode: 'contain'
   },
   graphWrapper: {
-    height: 100
+    height: Metrics.screenHeight/4,
+    marginTop: Metrics.baseMargin,
+    marginBottom: Metrics.baseMargin
   },
   divider: {
     borderBottomColor: Colors.charcoal,

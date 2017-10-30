@@ -45,16 +45,18 @@ function convertSpotPrices(spot_prices) {
  * convert spot_price from object of objects to object
  * @param {array} object of object of spot prices
  * @param {object} object of objects of historical prices
- * @return {array} object of spot prices
+ * @return {array} object of historical with latest spot prices
  */
-function appendSpotPricesToHistorical(spot_prices, hist_prices) {
+function mergeSpotPricesWithHistorical(spot_prices, hist_prices) {
   let new_prices = {}
   let time = new Date().getTime()/1000
   if (hist_prices) {
     for (coin in spot_prices) {
       prices = hist_prices[coin]
       prices = prices.concat([{"close": spot_prices[coin], "time": time}])
-      new_prices[coin] = prices
+      new_prices[coin] = _.map(prices, e => {
+        return _.extend({}, e, {date: dateToYMD(e.time*1000)})
+      })
     }
   }
   return new_prices
@@ -92,7 +94,7 @@ function processCoinbaseTransactions(assets, accounts, transactions) {
       if (o.type === "buy" || o.type === "sell") {
         positions[i].push({
           'order_type': o.type,
-          'amount': o.type === "buy" ? o.amount.amount : -o.amount.amount,
+          'amount': o.amount.amount,
           'coin': o.amount.currency,
           'price':  o.native_amount.amount / o.amount.amount,
           'cost_basis': o.native_amount.amount,
@@ -115,101 +117,37 @@ function processCoinbaseTransactions(assets, accounts, transactions) {
 }
 
 /**
- * Calculate positions for assets and transactions
- * @param {array} array of assets
- * @param {array} array of transactions
- * @param {array} object of spot prices by asset
- * @return {array} array of positions
+ * Initialize empty returns result
+ * @return {object} Daily returns for portfolio
  */
-function getPositions(assets, transactions, current_prices, accounts) {
-  let positions = []
-  let cleaned_positions = {}
-
-  transactions.map((w,i) => {
-    //initialize a new
-    positions[i] = []
-    // move older records to top
-    wallet = flipArray(w)
-    
-    wallet.map(o => {
-      if (o.type === "buy") {
-        let amount = o.amount.amount
-        let coin = o.amount.currency
-        let buy_price = o.native_amount.amount / o.amount.amount
-        let gain = (current_prices[coin] - buy_price) * amount
-        var position = {
-          'type': 'Buy',
-          'amount': amount,
-          'coin': coin,
-          'buy_price': buy_price,
-          'cost': buy_price * amount,
-          'value': current_prices[coin] * amount,
-          'buy_date': Date.parse(o.created_at),
-          'gain': gain,
-          'return': gain / buy_price / amount,
-          'sell_price': null,
-          'sell_date': null
-        }
-        positions[i].push(position)
-      }
-      positions[i].sort((a,b) => (a.buy_date - b.buy_date))
-    })
-  })
-
-  // remove accounts with no positions
-  assets.map(a => {
-    let idx = accounts.findIndex(x => x.name === a + ' Wallet')
-    let pos = positions[idx]
-    cleaned_positions[a] = pos
-  })
-
-  return cleaned_positions
-}
-
-/**
- * Calculate summary for every coin
- * @param {array} array of assets
- * @param {array} array of positions
- * @param {object} object of current prices
- * @return {array} array of summaries per asset
- */
-function getSummaryByAsset(assets, positions, prices) {
-  let result = []
-
-  assets.map(a => {
-    let pos = positions[a]
-    let gain = pos.map(x => x.gain).reduce((a,b) => a+b)
-    let cost = pos.map(x => x.cost).reduce((a,b) => a+b)
-    let value = pos.map(x => x.value).reduce((a,b) => a+b)
-    let summary = {
-      'coin': a,
-      'gain': gain,
-      'cost': cost,
-      'value': value,
-      'amount': pos.map(x => x.amount).reduce((a,b) => a+b),
-      'return': gain/cost * 100,
-      'price': prices[a]
+function initReturnsResult() {
+  return {
+    portfolio: {
+      gain: 0,
+      current_value: 0,
+      return: 0,
+      open_gain: 0,
+      closed_gain: 0
+    },
+    summaries: [{
+      coin: "None",
+      gain:0,
+      cost:0,
+      current_value:0 ,
+      amount:0,
+      return:0
+    }],
+    returngraph: {
+      data: [
+        {gain: 0}
+      ]
+    },
+    positions: {
+      BTC: [],
+      ETH: [],
+      LTC: []
     }
-    result.push(summary)
-  })
-  return result
-}
-
-/**
- * Calculate total summary
- * @param {array} summary for every asset
- * @return {object} object with portfolio returns
- */
-function getPortfolioSummary(summaries) {
-  let gain = summaries.map(x => x.gain).reduce((a,b) => a+b)
-  let value = summaries.map(x => x.value).reduce((a,b) => a+b)
-  let returns = gain / value * 100
-  let result = {
-    'gain': gain,
-    'value': value,
-    'return': returns
   }
-  return result
 }
 
 /**
@@ -220,31 +158,10 @@ function getPortfolioSummary(summaries) {
  * @return {object} Daily returns for portfolio
  */
 function getReturnsByDate(assets, transactions, hist_prices) {
-  // init empty one
-  let result = {
-    portfolio: {
-      gain: 0,
-      current_value: 0,
-      return: 0
-    },
-    summaries: [{
-      coin: "None",
-      gain:0,
-      cost:0,
-      current_value:0 ,
-      amount:0,
-      return:0
-    }]
-  }
+  let result = initReturnsResult()
+
   // check if hist_prices exist
   if (Object.keys(hist_prices).length > 0) {
-    // add date to prices
-    let prices = {}
-    for (coin in hist_prices) {
-      prices[coin] = _.map(hist_prices[coin], e => {
-        return _.extend({}, e, {date: dateToYMD(e.time*1000)})
-      })
-    }
 
     // flatten transactions, filter only buy/sell and group by date
     transactions = _.reduce(_.values(transactions),(s,x) => _.concat(s,x), [])
@@ -252,18 +169,23 @@ function getReturnsByDate(assets, transactions, hist_prices) {
     
     // create a merged price object on dates
     let full_frame = _.merge(
-      _.mapValues(_.keyBy(prices['BTC'], 'date'), (o) => {return {'BTC': o}}),
-      _.mapValues(_.keyBy(prices['ETH'], 'date'), (o) => {return {'ETH': o}}),
-      _.mapValues(_.keyBy(prices['LTC'], 'date'), (o) => {return {'LTC': o}}),
+      _.mapValues(_.keyBy(hist_prices['BTC'], 'date'), (o) => {return {'BTC': o}}),
+      _.mapValues(_.keyBy(hist_prices['ETH'], 'date'), (o) => {return {'ETH': o}}),
+      _.mapValues(_.keyBy(hist_prices['LTC'], 'date'), (o) => {return {'LTC': o}}),
       _.mapValues(transactions, (o) => {return {'orders': o}})
     )
 
     // change date keys to timeepoch for sorting, etc
     // full_frame = _.mapKeys(full_frame, (v,k) => new Date(k).getTime()/1000) // either as object of objects
     full_frame = _.sortBy(_.values(full_frame), (o) => o.BTC.time) // or as array of object
+    var current_prices = full_frame[full_frame.length-1]
 
     // main loop
-    let portfolio = []
+    let portfolio = [] // array of portfolio state objects by date
+    let open_positions = [] // array of open positions
+    let open_pos_idx = 0
+    let closed_positions = [] // array of closed positions
+    let closed_pos_idx = 0
     for (var i=0; i<full_frame.length; i++) {
       date = full_frame[i]
       // either initiate portfolio with first order or continue if portfolio exists
@@ -280,10 +202,11 @@ function getReturnsByDate(assets, transactions, hist_prices) {
             "return": 0
           }})
         } else {
-          ptf = portfolio[portfolio.length-1]
+          ptf = _.cloneDeep(portfolio[portfolio.length-1])
         }
 
-        // update portfolio with new values
+        // update amounts with orders for this date
+        // update positions
         if ("orders" in date) {
           // loop over all orders and update ptf for given date
           for (var order_idx=0; order_idx <date.orders.length; order_idx++ ) {
@@ -293,18 +216,160 @@ function getReturnsByDate(assets, transactions, hist_prices) {
             let coin = order.coin
             let coin_price = date[coin].close
 
+            // counter for sold closed gain
+            let sold_closed_gain = 0
+
             // update amounts
             if (order.order_type === "buy") {
               // update positions for coin first
               ptf[coin].cost_basis += order.cost_basis
               ptf[coin].amount += order.amount
+
+              // add position
+              let current_value = current_prices[order.coin].close * order.amount
+              let gain = current_value - order.cost_basis
+              pos = {
+                'status': 'Open',
+                'amount': order.amount,
+                'coin': order.coin,
+                'buy_price': order.price,
+                'buy_date': order.date,
+                'cost_basis': order.cost_basis,
+                'current_value': current_value,
+                'gain': gain,
+                'return': gain / order.cost_basis * 100,
+                'idx': open_pos_idx
+              }
+              // push to positions, increment index
+              open_positions.push(_.cloneDeep(pos))
+              open_pos_idx += 1
+
             } else if (order.order_type === "sell") {
+              // init cost_basis which will be used later to update overall portfolio value
+              let sold_cost_basis = 0
+
               // Sell logic
+              // update amounts and cost_basis
+              // find what positions we are going to close - need to get a cost basis for those.
+              // check if there are enough coins to sell - close cheapest first
+              if (Math.abs(order.amount) < ptf[coin].amount) {
+                let amount_left_to_sell = Math.abs(order.amount)
+                
+                // find all positions for this coin and sort it
+                coin_open_pos = _.filter(open_positions, o => {return o.coin === coin})
+                coin_open_pos = _.sortBy(coin_open_pos, o => o.buy_price)
+
+                // loop until sold enough
+                for (var pos_idx=0; pos_idx<coin_open_pos.length-1; pos_idx++) {
+                  if (amount_left_to_sell === 0) { break }
+                  
+                  // re-assign for simplicity
+                  open_pos = coin_open_pos[pos_idx]
+                  
+                  if (amount_left_to_sell > open_pos.amount) {
+                    // close current position completely, move it to closed and delete from open
+                    let current_value = open_pos.amount * order.price
+                    let gain = current_value - open_pos.cost_basis
+                    pos = {
+                      'status': 'Closed',
+                      'amount': open_pos.amount,
+                      'coin': order.coin,
+                      'buy_price': open_pos.buy_price,
+                      'buy_date': open_pos.buy_date,
+                      'cost_basis': open_pos.cost_basis,
+                      'current_value': current_value,
+                      'gain': gain,
+                      'return': gain/open_pos.cost_basis * 100,
+                      'sell_price': order.price,
+                      'sell_date': order.date,
+                      'idx': closed_pos_idx
+                    }
+                    // update counters
+                    sold_cost_basis -= open_pos.cost_basis
+                    sold_closed_gain += gain
+                    amount_left_to_sell -= open_pos.amount
+                    closed_positions.push(pos)
+                    closed_pos_idx += 1
+                    open_positions = _.remove(open_positions, o => o.idx !== open_pos.idx)
+                  } else {
+                    // partial closure of the position
+                    amount_sold = amount_left_to_sell
+                    current_value = amount_sold*order.price
+                    cost_basis = amount_sold*open_pos.buy_price
+                    gain = current_value - cost_basis
+                    // create and add the closed position
+                    pos = {
+                      'status': 'Closed',
+                      'amount': amount_sold,
+                      'coin': order.coin,
+                      'buy_price': open_pos.buy_price,
+                      'buy_date': open_pos.buy_date,
+                      'cost_basis': cost_basis,
+                      'current_value': current_value,
+                      'gain': gain,
+                      'return': gain/cost_basis * 100,
+                      'sell_price': order.price,
+                      'sell_date': order.date,
+                      'idx': closed_pos_idx
+                    }
+                    // update closed positions and counters
+                    sold_cost_basis -= cost_basis
+                    sold_closed_gain += gain
+                    amount_left_to_sell -= amount_sold
+                    closed_positions.push(pos)
+                    closed_pos_idx += 1
+                    
+                    // create and add the new split open position
+                    pos_amount = open_pos.amount - amount_sold
+                    current_value = current_prices[open_pos.coin].close * pos_amount
+                    cost_basis = pos_amount * open_pos.buy_price
+                    gain = current_value - cost_basis
+                    pos = {
+                      'status': 'Open',
+                      'amount': open_pos.amount - amount_sold,
+                      'coin': open_pos.coin,
+                      'buy_price': open_pos.buy_price,
+                      'buy_date': open_pos.buy_date,
+                      'cost_basis': cost_basis,
+                      'current_value': current_value,
+                      'gain': gain,
+                      'return': gain / cost_basis * 100,
+                      'idx': open_pos_idx
+                    }
+                    open_positions.push(pos)
+                    open_pos_idx += 1
+                    open_positions = _.remove(open_positions, o => o.idx !== open_pos.idx)                    
+                  }
+                }
+
+              } else {
+                // if there is not enough - save as Closed but with -999 as price and value
+                let current_value = current_prices[order.coin].close * order.amount
+                pos = {
+                  'status': 'Closed',
+                  'amount': Math.abs(order.amount),
+                  'coin': order.coin,
+                  'buy_price': -999,
+                  'cost_basis': -999,
+                  'buy_date': -999,
+                  'current_value': current_value,
+                  'gain': -999,
+                  'return': -999,
+                  'sell_price': order.price,
+                  'sell_date': order.date
+                }
+              }
+              
+              // now update cumulative values
+              ptf[coin].cost_basis += sold_cost_basis
+              ptf[coin].amount += order.amount
+              ptf[coin].closed_gain += sold_closed_gain
+
             }
           }
         }
-          
-        // Now update prices and gains for all positions
+        
+        // Now update prices and gains for all assets
         _.forEach(assets, v => {
           ptf[v].current_value = ptf[v].amount * date[v].close
           ptf[v].open_gain = ptf[v].current_value - ptf[v].cost_basis
@@ -315,19 +380,11 @@ function getReturnsByDate(assets, transactions, hist_prices) {
 
         // Run summary for portfolio and update
         ptf["portfolio"].current_value = _.reduce(ptf, (res, v, k) => {
-          return k !== "portfolio" ? res+v.current_value : res
-          // if (k !== "portfolio") {
-          //   res += v.current_value
-          // }
-          // return res
-        }, 0)
+          return k !== "portfolio" ? res+v.current_value : res }, 0)
         ptf["portfolio"].cost_basis = _.reduce(ptf, (res, v, k) => {
-          return k !== "portfolio" ? res+v.cost_basis : res
-          // if (k !== "portfolio") {
-          //   res += v.cost_basis
-          // }
-          // return res
-        }, 0)
+          return k !== "portfolio" ? res+v.cost_basis : res }, 0)
+        ptf["portfolio"].closed_gain = _.reduce(ptf, (res, v, k) => {
+          return k !== "portfolio" ? res+v.closed_gain : res }, 0)
         ptf["portfolio"].open_gain = ptf["portfolio"].current_value - ptf["portfolio"].cost_basis
         ptf["portfolio"].gain = ptf["portfolio"].open_gain + ptf["portfolio"].closed_gain
         ptf["portfolio"].return = ptf["portfolio"].gain / ptf["portfolio"].cost_basis * 100
@@ -337,18 +394,29 @@ function getReturnsByDate(assets, transactions, hist_prices) {
         ptf["portfolio"].date = date.BTC.date
 
         // push
-        portfolio.push(ptf)
+        portfolio.push(_.cloneDeep(ptf))
       }
     }
 
     // prepare data for graphs
     let latest = portfolio[portfolio.length-1]
-    let summaries = assets.reduce((o,k) => { o[k] = latest[k]; return o }, {})
-    summaries = _.map(summaries, (v,k) => _.assign(v,{coin: k}))
+
+    // get summaries
+    // let summaries = assets.reduce((o,k) => { o[k] = latest[k]; return o }, {})
+    let summaries = _.map(latest, (v,k) => _.assign(v,{coin: k}) )
+    summaries = _.filter(summaries, o => o.amount ) //portfolio will have amount=0
+
+    // process positions prior to returning
+    open_positions = _.groupBy(open_positions, "coin")
+    closed_positions = _.groupBy(closed_positions, "coin")    
+
+    // prepare returning object
     result = {
       returnsdata: _.values(_.mapValues(portfolio, o => o.portfolio)),
       portfolio: latest.portfolio,
-      summaries: summaries
+      summaries: summaries,
+      open_positions: open_positions,
+      closed_positions: closed_positions
     }
   }
   return result
@@ -370,20 +438,13 @@ export function getAnalysis(assets, transactions, accounts, spot_prices, hist_pr
 
   // get spot prices and append to historical
   let current_prices = convertSpotPrices(spot_prices)
-  let prices = appendSpotPricesToHistorical(current_prices, hist_prices)
+  let prices = mergeSpotPricesWithHistorical(current_prices, hist_prices)
 
   // filter buy/sell transactions, parse dates, adjust amount for sell
   let processed_transactions = processCoinbaseTransactions(assets, accounts, transactions)
   
   // get returns by positions and for the portfolio
   let returns = getReturnsByDate(assets, processed_transactions, prices)
-  
-
-  // review this functions
-  // TODO: merge positions with getReturnsByDate
-  let positions = getPositions(assets, transactions, current_prices, accounts)
-  // let summaries = getSummaryByAsset(assets, positions, current_prices)
-  // let portfolio = getPortfolioSummary(summaries)
 
   return {
     sparkline: {
@@ -395,6 +456,6 @@ export function getAnalysis(assets, transactions, accounts, spot_prices, hist_pr
       data: returns.returnsdata
     },
     current_prices: current_prices,
-    positions: positions
+    positions: [returns.open_positions, returns.closed_positions]
   }
 }

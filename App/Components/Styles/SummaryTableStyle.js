@@ -6,15 +6,13 @@ export default StyleSheet.create({
   container: {
     flex: 1
   },
-	listContent: {
-    // marginTop: Metrics.baseMargin
-  },
   rowContainer: {
     flex: 1,
     height: Metrics.rowHeight,
     flexDirection: 'row',
     margin: Metrics.baseMargin,
-    backgroundColor: Colors.background
+    backgroundColor: Colors.background,
+    justifyContent: 'space-between'
   },
 	rowBoldLabel: {
     fontWeight: 'bold',
@@ -36,11 +34,9 @@ export default StyleSheet.create({
     textAlignVertical: "center"
   },
   rowButtonContainer: {
-    margin: Metrics.baseMargin,
     height: Metrics.rowHeight - Metrics.doubleBaseMargin,
     justifyContent: 'center',
-    marginHorizontal: Metrics.section,
-    padding: Metrics.smallMargin,
+    marginLeft: 0,
     marginVertical: Metrics.baseMargin,
     borderRadius: 5
   }

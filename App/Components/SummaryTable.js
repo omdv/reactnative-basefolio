@@ -104,7 +104,7 @@ export default class SummaryTable extends Component {
 
     return (
       <TouchableOpacity style={styles.rowContainer} onPress={() => this.props.navigation.navigate('PositionsScreen', {coin: item.coin})}>
-          <View style={{flexDirection: 'column', "width": Math.floor(Metrics.screenWidth/3)-Metrics.doubleBaseMargin}}>
+          <View style={{flexDirection: 'column', width: Math.floor(Metrics.screenWidth/3)-Metrics.doubleBaseMargin}}>
             <Text style={styles.rowBoldLabel}>{item.coin}</Text>
             <Text style={styles.rowMuteLabel}>{item.amount.toFixed(8)}</Text>
           </View>
@@ -113,7 +113,7 @@ export default class SummaryTable extends Component {
               <Group x={0+Metrics.baseMargin} y={0+Metrics.baseMargin}>
                 <Shape
                   d={graph.path}
-                  stroke={Colors.graph}
+                  stroke={Colors.sparkline}
                   strokeWidth={0.5}
                 />
               </Group>
@@ -123,8 +123,8 @@ export default class SummaryTable extends Component {
             <TouchableOpacity onPress={this.flipButton} style={{width: gainButtonWidth}}>
               <View style={[
                 styles.rowButtonContainer,
-                {"backgroundColor": this.returnIdx == 2 ? Colors.navigation : (isPositive ? Colors.positive : Colors.negative)},
-                {"width": gainButtonWidth}
+                {backgroundColor: this.returnIdx == 2 ? Colors.navigation : (isPositive ? Colors.positive : Colors.negative)},
+                {width: gainButtonWidth}
               ]}>
                 <Text style={[
                   styles.rowButtonLabel,

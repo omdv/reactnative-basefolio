@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import { View, Text } from 'react-native'
 import RoundedButton from '../Components/RoundedButton'
 import styles from './Styles/AuthenticatedScreenStyle'
-import LoginActions from '../Redux/LoginRedux'
+// import LoginActions from '../Redux/LoginRedux'
 
 class AuthenticatedScreen extends React.Component {
   render () {
@@ -23,7 +23,7 @@ class AuthenticatedScreen extends React.Component {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    logout: () => dispatch(LoginActions.logout())
+    // logout: () => dispatch(LoginActions.logout())
   }
 }
 

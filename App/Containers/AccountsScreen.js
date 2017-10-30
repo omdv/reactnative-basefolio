@@ -52,7 +52,7 @@ class AccountsScreen extends Component {
       'LTC': {'USD': 65}
     }
     let default_accounts = require('../Fixtures/accounts.json')
-    let default_transactions = require('../Fixtures/transactions.json')
+    let default_transactions = require('../Fixtures/transactions_testing.json')
     let default_financial_summary = require('../Fixtures/default_summary.json')
     
     // initial state
@@ -125,14 +125,13 @@ class AccountsScreen extends Component {
         </View>
         <View style={styles.content}>
           <SummarySheet summary={financial_summary.portfolio} />
-          <View style={styles.divider} />
-          <ReturnsGraph
-            datum={financial_summary.returngraph.data}
-            xAccessor={d => new Date(d.time)}
-            yAccessor={d => d.gain}
-            width={Metrics.screenWidth}
-            height={100} />
-          <View style={styles.graphWrapper}></View>
+          <View style={styles.graphWrapper}>
+            <ReturnsGraph
+              datum={financial_summary.returngraph.data}
+              yAccessor={d => d.gain}
+              width={Metrics.screenWidth}
+              height={Metrics.screenHeight/4} />
+          </View>
           <View style={styles.divider} />
           <SummaryTable
             summary={financial_summary.summaries}

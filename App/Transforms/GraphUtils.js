@@ -1,6 +1,6 @@
-import * as scale from 'd3-scale';
-import * as shape from 'd3-shape';
-import * as d3Array from 'd3-array';
+import * as scale from 'd3-scale'
+import * as shape from 'd3-shape'
+import * as d3Array from 'd3-array'
 
 const d3 = {
   scale,
@@ -39,7 +39,6 @@ function createScaleY(minY, maxY, height) {
  * React Native application with ART.
  * @param {Array.<Object>} options.data Array of data we'll use to create
  *   our graphs from.
- * @param {function} xAccessor Function to access the x value from our data.
  * @param {function} yAccessor Function to access the y value from our data.
  * @param {number} width Width our graph will render to.
  * @param {number} height Height our graph will render to.
@@ -47,18 +46,11 @@ function createScaleY(minY, maxY, height) {
  */
 export function createLineGraph(
   data,
-  xAccessor,
   yAccessor,
   width,
   height,
 ) {
-  const lastDatum = data[data.length - 1];
-
-  const scaleX = createScaleX(
-    data[0].time,
-    lastDatum.time,
-    width
-  );
+  const lengthDatum = data.length - 1
 
   // Collect all y values.
   const allYValues = data.reduce((all, datum) => {
@@ -67,11 +59,23 @@ export function createLineGraph(
   }, []);
   // Get the min and max y value.
   const extentY = d3Array.extent(allYValues);
-  const scaleY = createScaleY(extentY[0], extentY[1], height);
+
+  // create scales
+  const scaleX = d3.scale.scaleLinear().domain([0, lengthDatum]).range([0, width])
+  const scaleY = d3.scale.scaleLinear().domain([extentY[0], extentY[1]]).range([height, 0])  
 
   const lineShape = d3.shape.line()
-    .x(d => scaleX(xAccessor(d)))
-    .y(d => scaleY(yAccessor(d)));
+    .x((d,i) => scaleX(i))
+    .y(d => scaleY(yAccessor(d)))
+
+  const lineArea = d3.shape.area()
+    .x((d,i) => scaleX(i))
+    .y1(d => scaleY(yAccessor(d)))
+    .y0(scaleY(0))
+
+    const lineAxis = d3.shape.line()
+    .x((d,i) => scaleX(i))
+    .y(d => scaleY(0))
 
   return {
     data,
@@ -80,16 +84,7 @@ export function createLineGraph(
       y: scaleY,
     },
     path: lineShape(data),
-    ticks: data.map((datum) => {
-      const time = xAccessor(datum);
-      const value = yAccessor(datum);
-
-      return {
-        x: scaleX(time),
-        y: scaleY(value),
-        datum,
-      };
-    }),
+    xaxis: lineAxis(data)
   };
 }
 

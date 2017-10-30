@@ -1,18 +1,13 @@
 import { StackNavigator } from 'react-navigation'
-import LoginScreen from '../Containers/LoginScreen'
 import AuthScreen from '../Containers/AuthScreen'
 
 import styles from './Styles/NavigationStyles'
 
 // Manifest of possible screens
 export default StackNavigator({
-  LoginScreen: {
-    screen: LoginScreen,
-    navigationOptions: { title: 'Login' }
-  },
   AuthScreen: {
     screen: AuthScreen,
-    navigationOptions: { title: 'Coinbase Auth' }
+    navigationOptions: { title: 'Login' }
   }
 }, {
   // Default config for all screens

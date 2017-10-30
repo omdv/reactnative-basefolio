@@ -26,7 +26,6 @@ export default class ReturnsGraph extends Component {
   // Prop type warnings
   static propTypes = {
     datum: PropTypes.array,
-    xAccessor: PropTypes.func,
     yAccessor: PropTypes.func,
     width: PropTypes.number,
     height: PropTypes.number
@@ -37,8 +36,8 @@ export default class ReturnsGraph extends Component {
   }
   
   render() {
-    const { datum, xAccessor, yAccessor, width, height } = this.props
-    const graph = datum ? graphUtils.createLineGraph(datum,xAccessor,yAccessor,width,height) : {path: null}
+    const { datum, yAccessor, width, height } = this.props
+    const graph = datum ? graphUtils.createLineGraph(datum,yAccessor,width,height) : {path: null}
     return (
       <View style={styles.container}>
         <Surface width={width} height={height}>
@@ -47,6 +46,11 @@ export default class ReturnsGraph extends Component {
               d={graph.path}
               stroke={Colors.graph}
               strokeWidth={1}
+            />
+            <Shape
+              d={graph.xaxis}
+              stroke={Colors.graph}
+              strokeWidth={0.2}
             />
           </Group>
         </Surface>

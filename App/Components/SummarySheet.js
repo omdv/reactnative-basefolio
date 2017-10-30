@@ -19,7 +19,7 @@ export default class SummarySheet extends Component {
           </View>
           <View>
             <Text style={[styles.returnValue, {"color": isPositive ? Colors.positive : Colors.negative}]}>
-              {summary.gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} / {summary.return.toFixed(2)}%
+              {summary.gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} ({summary.return.toFixed(2)}%)
             </Text>
           </View>
       </View>

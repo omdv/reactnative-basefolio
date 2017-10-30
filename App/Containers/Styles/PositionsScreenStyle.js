@@ -8,12 +8,13 @@ export default StyleSheet.create({
     backgroundColor: Colors.background
   },
   divider: {
-    borderBottomColor: Colors.charcoal,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    height: Metrics.doubleBaseMargin*2,
+    // borderBottomColor: Colors.charcoal,
+    // borderBottomWidth: StyleSheet.hairlineWidth,
   },
   rowContainer: {
     height: Metrics.doubleBaseMargin*2,
-    flexDirection: 'row',
+    flexDirection: 'column',
     borderRadius: 5,
     margin: Metrics.baseMargin,
     backgroundColor: Colors.background
@@ -21,8 +22,15 @@ export default StyleSheet.create({
   rowText: {
     alignSelf: 'center',
     color: Colors.snow,
-    textAlign: 'left',
+    textAlign: 'center',
     margin: 4,
     fontSize: Fonts.size.small
+  },
+  sectionHeader: {
+    marginTop: Metrics.baseMargin,
+    fontSize: Fonts.size.medium,
+    color: Colors.text,
+    backgroundColor: Colors.header_background,
+    textAlign: 'center'
   }
 })

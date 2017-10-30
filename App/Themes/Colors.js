@@ -26,7 +26,8 @@ const colors = {
   negative: '#d73027',
   graph: '#e73536',
   sparkline: 'rgba(255,255,255, 0.75)',
-  navigation: 'grey'  
+  navigation: 'grey',
+  header_background: '#111111'
 }
 
 export default colors

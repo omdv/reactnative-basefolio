@@ -8,7 +8,6 @@ export default () => {
     navigation: require('./NavigationRedux').reducer,
     appState: require('./AppStateRedux').reducer,
     github: require('./GithubRedux').reducer,
-    login: require('./LoginRedux').reducer,
     search: require('./SearchRedux').reducer,
     auth: require('./AuthRedux').reducer,
     transactions: require('./TransactionsRedux').reducer,

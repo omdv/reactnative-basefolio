@@ -12,7 +12,6 @@ import CryptoPricesAPI from '../Services/CryptoPricesApi'
 
 import { StartupTypes } from '../Redux/StartupRedux'
 import { GithubTypes } from '../Redux/GithubRedux'
-import { LoginTypes } from '../Redux/LoginRedux'
 import { AuthTypes } from '../Redux/AuthRedux'
 import { TransactionsTypes } from '../Redux/TransactionsRedux'
 import { CryptoPricesTypes } from '../Redux/CryptoPricesRedux'
@@ -20,7 +19,6 @@ import { CryptoPricesTypes } from '../Redux/CryptoPricesRedux'
 /* ------------- Sagas ------------- */
 
 import { startup } from './StartupSagas'
-import { login } from './LoginSagas'
 import { getUserAvatar } from './GithubSagas'
 import { getUserData, getAccounts, getAllData } from './AuthSagas'
 import { getTransactions} from './TransactionsSagas'
@@ -40,7 +38,6 @@ export default function * root () {
   yield [
     // some sagas only receive an action
     takeLatest(StartupTypes.STARTUP, startup),
-    // takeLatest(LoginTypes.LOGIN_REQUEST, login),
     // some sagas receive extra parameters in addition to an action
     // takeLatest(GithubTypes.USER_REQUEST, getUserAvatar, api),
     

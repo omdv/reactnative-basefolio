@@ -91,7 +91,7 @@ class AuthScreen extends Component {
     return (
       <ScrollView>
         <Image source={Images.logo} style={[styles.topLogo]} />
-        <RoundedButton text="Auth with Coinbase" onPress={this._authCoinbase} />
+        <RoundedButton text="Coinbase account" onPress={this._authCoinbase} />
       </ScrollView>
     )
   }
