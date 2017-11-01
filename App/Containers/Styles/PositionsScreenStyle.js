@@ -19,6 +19,12 @@ export default StyleSheet.create({
     margin: Metrics.baseMargin,
     backgroundColor: Colors.background
   },
+  rowClosedContainer: {
+    flexDirection: 'column',
+    borderRadius: 5,
+    margin: Metrics.baseMargin,
+    backgroundColor: Colors.background
+  },
   rowText: {
     alignSelf: 'center',
     color: Colors.snow,

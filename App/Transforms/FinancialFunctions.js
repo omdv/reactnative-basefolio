@@ -245,120 +245,116 @@ function getReturnsByDate(assets, transactions, hist_prices) {
               open_pos_idx += 1
 
             } else if (order.order_type === "sell") {
-              // init cost_basis which will be used later to update overall portfolio value
-              let sold_cost_basis = 0
-
               // Sell logic
               // update amounts and cost_basis
               // find what positions we are going to close - need to get a cost basis for those.
               // check if there are enough coins to sell - close cheapest first
-              if (Math.abs(order.amount) < ptf[coin].amount) {
-                let amount_left_to_sell = Math.abs(order.amount)
+              // if there is not enough - sell all available and raise the warning
+              
+              // init cost_basis which will be used later to update overall portfolio value
+              let sold_cost_basis = 0
+              
+              // init overall order record
+              let closed = {
+                'amount': Math.abs(order.amount),
+                'oversold': false,
+                'coin': order.coin,
+                'sell_price': order.price,
+                'sell_date': order.date,
+                'idx': closed_pos_idx,
+                'closed_positions': [],
+                'sell_value': Math.abs(order.amount) * order.price
+              }
+
+              if (Math.abs(order.amount) > ptf[coin].amount) {
+                closed.oversold = true
+                order.amount = ptf[coin].amount
+                order.sell_value = ptf[coin].amount*order.price
+              }
+
+              let amount_left_to_sell = Math.abs(order.amount)
+              
+              // find all positions for this coin and sort it
+              coin_open_pos = _.filter(open_positions, o => {return o.coin === coin})
+              coin_open_pos = _.sortBy(coin_open_pos, o => o.buy_price)
+
+              // loop until sold enough
+              for (var pos_idx=0; pos_idx<coin_open_pos.length-1; pos_idx++) {
+                if (amount_left_to_sell === 0) { break }
                 
-                // find all positions for this coin and sort it
-                coin_open_pos = _.filter(open_positions, o => {return o.coin === coin})
-                coin_open_pos = _.sortBy(coin_open_pos, o => o.buy_price)
-
-                // loop until sold enough
-                for (var pos_idx=0; pos_idx<coin_open_pos.length-1; pos_idx++) {
-                  if (amount_left_to_sell === 0) { break }
-                  
-                  // re-assign for simplicity
-                  open_pos = coin_open_pos[pos_idx]
-                  
-                  if (amount_left_to_sell > open_pos.amount) {
-                    // close current position completely, move it to closed and delete from open
-                    let current_value = open_pos.amount * order.price
-                    let gain = current_value - open_pos.cost_basis
-                    pos = {
-                      'status': 'Closed',
-                      'amount': open_pos.amount,
-                      'coin': order.coin,
-                      'buy_price': open_pos.buy_price,
-                      'buy_date': open_pos.buy_date,
-                      'cost_basis': open_pos.cost_basis,
-                      'current_value': current_value,
-                      'gain': gain,
-                      'return': gain/open_pos.cost_basis * 100,
-                      'sell_price': order.price,
-                      'sell_date': order.date,
-                      'idx': closed_pos_idx
-                    }
-                    // update counters
-                    sold_cost_basis -= open_pos.cost_basis
-                    sold_closed_gain += gain
-                    amount_left_to_sell -= open_pos.amount
-                    closed_positions.push(pos)
-                    closed_pos_idx += 1
-                    open_positions = _.remove(open_positions, o => o.idx !== open_pos.idx)
-                  } else {
-                    // partial closure of the position
-                    amount_sold = amount_left_to_sell
-                    current_value = amount_sold*order.price
-                    cost_basis = amount_sold*open_pos.buy_price
-                    gain = current_value - cost_basis
-                    // create and add the closed position
-                    pos = {
-                      'status': 'Closed',
-                      'amount': amount_sold,
-                      'coin': order.coin,
-                      'buy_price': open_pos.buy_price,
-                      'buy_date': open_pos.buy_date,
-                      'cost_basis': cost_basis,
-                      'current_value': current_value,
-                      'gain': gain,
-                      'return': gain/cost_basis * 100,
-                      'sell_price': order.price,
-                      'sell_date': order.date,
-                      'idx': closed_pos_idx
-                    }
-                    // update closed positions and counters
-                    sold_cost_basis -= cost_basis
-                    sold_closed_gain += gain
-                    amount_left_to_sell -= amount_sold
-                    closed_positions.push(pos)
-                    closed_pos_idx += 1
-                    
-                    // create and add the new split open position
-                    pos_amount = open_pos.amount - amount_sold
-                    current_value = current_prices[open_pos.coin].close * pos_amount
-                    cost_basis = pos_amount * open_pos.buy_price
-                    gain = current_value - cost_basis
-                    pos = {
-                      'status': 'Open',
-                      'amount': open_pos.amount - amount_sold,
-                      'coin': open_pos.coin,
-                      'buy_price': open_pos.buy_price,
-                      'buy_date': open_pos.buy_date,
-                      'cost_basis': cost_basis,
-                      'current_value': current_value,
-                      'gain': gain,
-                      'return': gain / cost_basis * 100,
-                      'idx': open_pos_idx
-                    }
-                    open_positions.push(pos)
-                    open_pos_idx += 1
-                    open_positions = _.remove(open_positions, o => o.idx !== open_pos.idx)                    
+                // re-assign for simplicity
+                open_pos = coin_open_pos[pos_idx]
+                
+                if (amount_left_to_sell > open_pos.amount) {
+                  // close current position completely, append to closed and delete from open
+                  let current_value = open_pos.amount * order.price
+                  let gain = current_value - open_pos.cost_basis
+                  pos = {
+                    'amount': open_pos.amount,
+                    'buy_price': open_pos.buy_price,
+                    'buy_date': open_pos.buy_date,
+                    'cost_basis': open_pos.cost_basis,
+                    'current_value': current_value,
+                    'gain': gain,
+                    'return': gain/open_pos.cost_basis * 100,
                   }
-                }
-
-              } else {
-                // if there is not enough - save as Closed but with -999 as price and value
-                let current_value = current_prices[order.coin].close * order.amount
-                pos = {
-                  'status': 'Closed',
-                  'amount': Math.abs(order.amount),
-                  'coin': order.coin,
-                  'buy_price': -999,
-                  'cost_basis': -999,
-                  'buy_date': -999,
-                  'current_value': current_value,
-                  'gain': -999,
-                  'return': -999,
-                  'sell_price': order.price,
-                  'sell_date': order.date
+                  // update counters
+                  sold_cost_basis -= open_pos.cost_basis
+                  sold_closed_gain += gain
+                  amount_left_to_sell -= open_pos.amount
+                  closed.closed_positions.push(pos)
+                  open_positions = _.remove(open_positions, o => o.idx !== open_pos.idx)
+                } else {
+                  // partial closure of the position
+                  amount_sold = amount_left_to_sell
+                  current_value = amount_sold*order.price
+                  cost_basis = amount_sold*open_pos.buy_price
+                  gain = current_value - cost_basis
+                  // create and add the closed position
+                  pos = {
+                    'amount': amount_sold,
+                    'buy_price': open_pos.buy_price,
+                    'buy_date': open_pos.buy_date,
+                    'cost_basis': cost_basis,
+                    'current_value': current_value,
+                    'gain': gain,
+                    'return': gain/cost_basis * 100,
+                  }
+                  // update current closed position and counters
+                  sold_cost_basis -= cost_basis
+                  sold_closed_gain += gain
+                  amount_left_to_sell -= amount_sold
+                  closed.closed_positions.push(pos)
+                  
+                  // create and add the new split open position
+                  pos_amount = open_pos.amount - amount_sold
+                  current_value = current_prices[open_pos.coin].close * pos_amount
+                  cost_basis = pos_amount * open_pos.buy_price
+                  gain = current_value - cost_basis
+                  pos = {
+                    'status': 'Open',
+                    'amount': open_pos.amount - amount_sold,
+                    'coin': open_pos.coin,
+                    'buy_price': open_pos.buy_price,
+                    'buy_date': open_pos.buy_date,
+                    'cost_basis': cost_basis,
+                    'current_value': current_value,
+                    'gain': gain,
+                    'return': gain / cost_basis * 100,
+                    'idx': open_pos_idx
+                  }
+                  open_positions.push(pos)
+                  open_pos_idx += 1
+                  open_positions = _.remove(open_positions, o => o.idx !== open_pos.idx)                    
                 }
               }
+              
+              // update the current closed position and push it to array
+              closed['cost_basis'] = Math.abs(sold_cost_basis)
+              closed['gain'] = closed['sell_value'] - closed['cost_basis']
+              closed['return'] = closed['gain'] / closed['cost_basis']
+              closed_positions.push(closed)
+              closed_pos_idx += 1
               
               // now update cumulative values
               ptf[coin].cost_basis += sold_cost_basis
@@ -402,9 +398,8 @@ function getReturnsByDate(assets, transactions, hist_prices) {
     let latest = portfolio[portfolio.length-1]
 
     // get summaries
-    // let summaries = assets.reduce((o,k) => { o[k] = latest[k]; return o }, {})
     let summaries = _.map(latest, (v,k) => _.assign(v,{coin: k}) )
-    summaries = _.filter(summaries, o => o.amount ) //portfolio will have amount=0
+    summaries = _.filter(summaries, o => o.amount ) // portfolio will have amount=0
 
     // process positions prior to returning
     open_positions = _.groupBy(open_positions, "coin")

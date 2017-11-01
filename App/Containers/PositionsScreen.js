@@ -2,14 +2,14 @@ import React, { Component } from 'react'
 import { ScrollView, Text, KeyboardAvoidingView, View, TouchableOpacity, FlatList } from 'react-native'
 import { connect } from 'react-redux'
 // Components
-import RoundedButton from '../Components/RoundedButton'
+import ClosedPositionCard from '../Components/ClosedPositionCard'
 // Actions
 import PositionsActions from '../Redux/PositionsRedux'
 // Styles
 import styles from './Styles/PositionsScreenStyle'
 import { Colors } from '../Themes'
 // react-native elements
-import { Header, Icon } from 'react-native-elements'
+import { Icon } from 'react-native-elements'
 
 class PositionsScreen extends Component {
 
@@ -31,25 +31,22 @@ class PositionsScreen extends Component {
     )
   }
 
-  renderRowClosed ({item}) {
-    const isPositive = item.gain > 0 ? 1 : 0
-    const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit'}
+  renderClosedPositions({item}) {
     return (
-      <View style={[styles.rowContainer, {backgroundColor: isPositive ? Colors.positive: Colors.negative}]}>
         <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
-          <Text style={styles.rowText}>SELL: {item.amount.toFixed(8)}</Text>
-          <Text style={styles.rowText}>@ {item.sell_price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
-          <Text style={styles.rowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.sell_date))}</Text>
+          <Text style={styles.rowText}>{item.buy_price}</Text>
+          <Text style={styles.rowText}>{item.buy_date}</Text>
         </View>
-        <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
-          <Text style={styles.rowText}>COST: {item.cost_basis.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
-          <Text style={styles.rowText}>P/L: {item.gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} ({item.return.toFixed(2)}%)</Text>
-        </View>
-      </View>
     )
   }
 
-  renderEmpty = () => <Text style={styles.rowText}> No positions </Text>
+  renderRowClosed ({item}) {
+    return (
+      <ClosedPositionCard item={item}/>
+    )
+  }
+
+  renderEmpty = () => <Text style={styles.rowText}> No orders </Text>
   keyExtractor = (item, index) => index
   oneScreensWorth = 20
 
@@ -65,7 +62,7 @@ class PositionsScreen extends Component {
           <View style={{width: 50}}></View> 
         </View>
         <View style={styles.content}>
-          <View><Text style={styles.sectionHeader}>Open Positions</Text></View>
+          <View><Text style={styles.sectionHeader}>Open positions</Text></View>
           <FlatList
             contentContainerStyle={styles.listContent}
             data={ positions[0][coin] }
@@ -77,7 +74,7 @@ class PositionsScreen extends Component {
         </View>
         <View style={styles.divider} />
         <View style={styles.content}>
-          <View><Text style={styles.sectionHeader}>Closed Positions</Text></View>
+          <View><Text style={styles.sectionHeader}>Closed positions</Text></View>
           <FlatList
             contentContainerStyle={styles.listContent}
             data={ positions[1][coin] }
