@@ -12,12 +12,13 @@ import {
 import SummaryTable from '../Components/SummaryTable'
 import SummarySheet from '../Components/SummarySheet'
 import ReturnsGraph from '../Components/ReturnsGraph'
+import PortfolioSummary from '../Components/PortfolioSummary'
 
 // react-native elements
-import { Header, Icon } from 'react-native-elements'
+import { Icon } from 'react-native-elements'
 
 // Redux
-import TransactionsActions from '../Redux/TransactionsRedux'
+import AuthActions from '../Redux/AuthRedux'
 import CryptoPricesActions from '../Redux/CryptoPricesRedux'
 import PositionsActions from '../Redux/PositionsRedux'
 
@@ -29,6 +30,9 @@ import { Images, Metrics, Colors } from '../Themes'
 import { getAnalysis } from '../Transforms/FinancialFunctions'
 import * as _ from 'lodash'
 
+// Supported coins
+var coins = require('../Config/Coins')['coins']
+
 class AccountsScreen extends Component {
   static propTypes = {
     fetching: PropTypes.bool,
@@ -39,7 +43,7 @@ class AccountsScreen extends Component {
     getTransactions: PropTypes.func,
     savePositions: PropTypes.func,
     refreshAllPrices: PropTypes.func,
-    refreshCurrentPrices: PropTypes.func
+    refreshCurrentPrices: PropTypes.func,
   }
   
   constructor (props) {
@@ -57,8 +61,9 @@ class AccountsScreen extends Component {
     
     // initial state
     this.state = {
-      assets: ['BTC', 'ETH', 'LTC'],
+      assets: coins,
       sparklines_duration: 14,
+      
       // use from props
       accounts: accounts ? accounts : default_accounts,
       transactions: transactions ? transactions : default_transactions,
@@ -84,8 +89,9 @@ class AccountsScreen extends Component {
   }
 
   componentDidMount () {
-    this.props.startPricePolling(this.state.assets)
-    this.props.refreshAllPrices(this.state.assets)
+    this.props.startPricePolling()
+    this.props.startCoinbasePolling()
+    // this.props.refreshAllPrices(this.state.assets)
     this.callFinancialAnalysis()
   }
 
@@ -120,8 +126,8 @@ class AccountsScreen extends Component {
     return (
       <ScrollView style={styles.container}>
         <View style={styles.header} >
-          <View style={{width: 50}}><Icon name='settings' color={Colors.navigation} /></View>
-          <View style={{width: 50}}><Icon name='refresh' color={Colors.navigation} onPress={() => refreshCurrentPrices(assets)} /></View> 
+          <View style={{width: 50}}><Icon name='settings' color={Colors.navigation} onPress={() => this.props.navigation.navigate('ConfigScreen')}/></View>
+          <View style={{width: 50}}><Icon name='refresh' color={Colors.navigation} onPress={() => refreshCurrentPrices()} /></View> 
         </View>
         <View style={styles.content}>
           <SummarySheet summary={financial_summary.portfolio} />
@@ -159,11 +165,11 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    getTransactions: () => dispatch(TransactionsActions.transactionsRequest()),
-    startPricePolling: (coins) => dispatch(CryptoPricesActions.pricePollStart(coins)),
+    startCoinbasePolling: () => dispatch(AuthActions.accountsPollStart()),
+    startPricePolling: () => dispatch(CryptoPricesActions.pricePollStart()),
     stopPricePolling: () => dispatch(CryptoPricesActions.pricePollStop()),
-    refreshCurrentPrices: (coins) => dispatch(CryptoPricesActions.currPricesRequest(coins)),
-    refreshAllPrices: (coins) => dispatch(CryptoPricesActions.priceRefreshAllRequest(coins)),
+    refreshCurrentPrices: () => dispatch(CryptoPricesActions.currPricesRequest()),
+    refreshAllPrices: () => dispatch(CryptoPricesActions.priceRefreshAllRequest()),
     savePositions: (positions) =>dispatch(PositionsActions.positionsSave(positions))
   }
 }

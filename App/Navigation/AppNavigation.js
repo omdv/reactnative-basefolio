@@ -1,27 +1,21 @@
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { StackNavigator, addNavigationHelpers } from 'react-navigation'
-import TestList2 from '../Containers/TestList2'
-import TestList from '../Containers/TestList'
+import ConfigScreen from '../Containers/ConfigScreen'
 import PositionsScreen from '../Containers/PositionsScreen'
 import AccountsScreen from '../Containers/AccountsScreen'
 import AuthScreen from '../Containers/AuthScreen'
 import LoadingScreen from '../Containers/LoadingScreen'
-import LoggedInStackNavigator from './LoggedInStackNavigator'
-import NotLoggedInStackNavigator from './NotLoggedInStackNavigator'
 
 import styles from './Styles/NavigationStyles'
 
 // Manifest of possible screens
 export const PrimaryNav = StackNavigator({
-  TestList2: { screen: TestList2 },
-  TestList: { screen: TestList },
+  ConfigScreen: { screen: ConfigScreen },
   PositionsScreen: { screen: PositionsScreen },
   AccountsScreen: { screen: AccountsScreen },
   AuthScreen: { screen: AuthScreen },
   LoadingScreen: { screen: LoadingScreen },
-  LoggedInStack: { screen: LoggedInStackNavigator },
-  NotLoggedInStack: { screen: NotLoggedInStackNavigator }
 }, {
   // Default config for all screens
   headerMode: 'none',

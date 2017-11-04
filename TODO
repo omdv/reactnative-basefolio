@@ -3,6 +3,8 @@ TODO:
 REMOVE - Add positions acquired before coinbase, i.e. when coins are send to Coinbase
 - acitivity indicators
 - different failures when requesting API
+- disable refresh button when fetching
+- when refreshing prices it launches an infinite loop
 
 PRIOR TO RELEASE:
 - Clean AccountsRedux and Sagas - redundant

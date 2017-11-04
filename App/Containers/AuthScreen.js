@@ -10,11 +10,15 @@ import {
   Keyboard,
   LayoutAnimation,
   Linking,
+  ActivityIndicator
 } from 'react-native'
 import { connect } from 'react-redux'
 import DevscreensButton from '../../ignite/DevScreens/DevscreensButton.js'
 import RoundedButton from '../../App/Components/RoundedButton'
+
+// actions
 import AuthActions from '../Redux/AuthRedux'
+import CryptoPricesActions from '../Redux/CryptoPricesRedux'
 
 // Styles
 import { Images } from '../Themes'
@@ -27,11 +31,9 @@ var credentials = require('../Config/OAuth');
 class AuthScreen extends Component {
 
   static propTypes = {
-    attemptAuth: PropTypes.func
-  }
-
-  static propTypes = {
-    attemptAuth: PropTypes.func
+    initAuth: PropTypes.func,
+    getCoinbase: PropTypes.func,
+    getPrices: PropTypes.func
   }
 
   constructor (props) {
@@ -82,16 +84,19 @@ class AuthScreen extends Component {
         resp = JSON.parse(response._bodyText)
         this.access_token = resp.access_token
         this.refresh_token = resp.refresh_token
-        this.props.attemptAuth(this.access_token, this.refresh_token)
+        this.token_expiration = new Date().getTime() / 1000 + resp.expires_in
+        this.props.initAuth(this.access_token, this.refresh_token, this.token_expiration)
+        this.props.getCoinbase()
+        this.props.getPrices()
       })
   }
 
   render () {
     const { fetching } = this.props
     return (
-      <ScrollView>
-        <Image source={Images.logo} style={[styles.topLogo]} />
-        <RoundedButton text="Coinbase account" onPress={this._authCoinbase} />
+      <ScrollView style={styles.container}>
+        <RoundedButton text="Connect to Coinbase account" onPress={this._authCoinbase} />
+        <ActivityIndicator size='large' animating={ fetching }/>
       </ScrollView>
     )
   }
@@ -99,12 +104,15 @@ class AuthScreen extends Component {
 
 const mapStateToProps = (state) => {
   return {
+    fetching: state.auth.init_fetching
   }
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    attemptAuth: (access_token, refresh_token) => dispatch(AuthActions.authRequest(access_token, refresh_token))
+    initAuth: (access_token, refresh_token, token_expiration) => dispatch(AuthActions.initAuth(access_token, refresh_token, token_expiration)),
+    getCoinbase: () => dispatch(AuthActions.accountsRequest()),
+    getPrices: () => dispatch(CryptoPricesActions.allPricesRequest())
   }
 }
 

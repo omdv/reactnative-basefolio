@@ -15,9 +15,11 @@ import { call, take, put, all, fork, race } from 'redux-saga/effects'
 import CryptoPricesActions, { CryptoPricesTypes }  from '../Redux/CryptoPricesRedux'
 import TransformHistPrices from '../Transforms/TransformHistPrices'
 
+// Supported coins
+var coins = require('../Config/Coins')['coins']
+
 // Fetch current prices                                      
 function* pollCurrentPrices(api, action, millis) {
-  const { coins } = action
   let prices = {}
 
   let response = yield all(
@@ -38,13 +40,19 @@ function* pollCurrentPrices(api, action, millis) {
   yield call(delay, millis)
 }
 
+// helper to introduce delay between api calls to avoid ban
+function * pollHistPriceForOneCoin(api, coin) {
+  const response = yield call(api.getDailyHistPrices, coin)
+  yield call(delay, 3000)
+  return response
+}
+
 function* pollDailyHistPrices(api, action, millis) {
-  const { coins } = action
   let failure = false
   let prices = {}
 
   let response = yield all(
-    coins.map(coin => call(api.getDailyHistPrices, coin))
+    coins.map(coin => call(pollHistPriceForOneCoin, api, coin))
   )
 
   // check for summary status
@@ -89,18 +97,18 @@ function* historyPricesPoll(api, action, millis) {
 }
 
 // called on PRICE_POLL_START
-export function* pollPrices(api1, api2, action) {
+export function* startPricePoll(api1, api2, action) {
   yield fork(spotPricesPoll, api1, action, 300*1000)
   yield fork(historyPricesPoll, api2, action, 6000*1000)
 }
 
 // one time refresh without delays
-export function* refreshAllPrices(api, action) {
+export function* getAllPricesOnce(api, action) {
   yield call(pollCurrentPrices, api, action, 0)
   yield call(pollDailyHistPrices, api, action, 0)
 }
 
 // one time refresh current without delays
-export function* refreshCurrentPrices(api, action) {
+export function* getCurrentPricesOnce(api, action) {
   yield call(pollCurrentPrices, api, action, 0)
 }

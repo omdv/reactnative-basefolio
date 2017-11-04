@@ -10,12 +10,16 @@
 *    you'll need to define a constant in that file.
 *************************************************************/
 
-import { call, put, all } from 'redux-saga/effects'
-import AuthActions from '../Redux/AuthRedux'
+import { delay } from 'redux-saga'
+import { call, put, all, select, fork, race, take } from 'redux-saga/effects'
+import AuthActions, { AuthTypes } from '../Redux/AuthRedux'
 import CryptoPricesActions, { CryptoPricesTypes }  from '../Redux/CryptoPricesRedux'
 import TransformTransactions from '../Transforms/TransformTransactions'
 
-export function * getUserData (api, action) {
+const getRefreshToken = (state) => state.auth.refresh_token
+const getAccessToken = (state) => state.auth.access_token
+
+function * getUserData (api, action) {
   const { access_token, refresh_token } = action
   const response = yield call(api.getUser, access_token)
   if (response.ok) {
@@ -25,7 +29,7 @@ export function * getUserData (api, action) {
   }
 }
 
-export function * getAccounts (api, action) {
+function * getAccounts (api, action) {
 	const { access_token, refresh_token } = action
 	const response = yield call(api.getAccounts, access_token)
 
@@ -39,7 +43,7 @@ export function * getAccounts (api, action) {
   }
 }
 
-export function * getTransactionsForAccount (api, account, access_token) {
+function * getTransactionsForAccount (api, account, access_token) {
   let transactions = []
   let ok = true
 
@@ -65,9 +69,32 @@ export function * getTransactionsForAccount (api, account, access_token) {
   return {data: transactions, ok: ok}
 }
 
+function * getNewToken (api, action, millis) {
+  // delay
+  yield call(delay, millis)
 
-export function * getAllData (api, action) {
-	const { access_token, refresh_token } = action
+  const refresh_token = yield select(getRefreshToken)
+  const response = yield call(api.refreshToken, refresh_token)
+
+  if (response.ok) {
+    let access_token = response.data.access_token
+    let refresh_token = response.data.refresh_token
+    let token_expiration = new Date().getTime() / 1000 + response.data.expires_in
+    yield put(AuthActions.authRefreshSuccess(access_token, refresh_token, token_expiration))
+  } else {
+    yield put(AuthActions.authRefreshFailure())
+  }
+}
+
+
+function * getCoinbaseData (api, action, millis) {
+  // delay
+  yield call(delay, millis)
+  
+  // get current token
+  const access_token = yield select(getAccessToken)
+
+  // API call
 	const response = yield call(api.getAccounts, access_token)
 
   // success?
@@ -80,11 +107,64 @@ export function * getAllData (api, action) {
     let ok = trans_response.map(a => a.ok).reduce((a,b) => a && b)
     let transactions = trans_response.map(a => a.data)
     if (ok) {
-      yield put(AuthActions.authSuccess(accounts, transactions))
+      yield put(AuthActions.accountsSuccess(accounts, transactions))
     } else {
-      yield put(AuthActions.authFailure())
+      yield put(AuthActions.accountsFailure())
     }
   } else {
-    yield put(AuthActions.authFailure())
+    yield put(AuthActions.accountsFailure())
   }
+}
+
+// helper to define race
+function* refreshTokenPoll(api, action, millis) {
+  while (true) {
+    yield race([
+      call(getNewToken, api, action, millis),
+      take(AuthTypes.ACCOUNTS_POLL_STOP),
+      take(AuthTypes.LOGOUT)
+    ])
+  }
+}
+
+// helper to define race
+function* refreshTransactionsPoll(api, action, millis) {
+  while (true) {
+    yield race([
+      call(getCoinbaseData, api, action, millis),
+      take(AuthTypes.ACCOUNTS_POLL_STOP),
+      take(AuthTypes.LOGOUT)
+    ])
+  }
+}
+
+// saga to get all information prior to successful auth
+export function * loginSaga(action) {
+  yield all([
+    take(AuthTypes.ACCOUNTS_SUCCESS),
+    take(CryptoPricesTypes.HIST_PRICES_SUCCESS),
+    take(CryptoPricesTypes.CURR_PRICES_SUCCESS)
+  ])
+  yield put(AuthActions.authSuccess())
+}
+
+export function * startCoinbasePoll(authApi, transactionsApi, action) {
+  yield fork(refreshTokenPoll, authApi, action, 300*1000)
+  yield fork(refreshTransactionsPoll, transactionsApi, action, 1800*1000)
+}
+
+// called on accountsRefreshPollStart
+function * pollAccounts(transactionsApi, action) {
+  yield fork(refreshTransactionsPoll, transactionsApi, action, 1800*1000)
+}
+
+// called on authRefreshPollStart
+function * pollAccessToken(authApi, action) {
+  yield fork(refreshTokenPoll, authApi,300*1000)
+  yield fork(refreshTransactionsPoll, transactionsApi, action, 1800*1000)
+}
+
+// called on accountsRequest
+export function * getCoinbaseDataOnce(transactionsApi, action) {
+  yield call(getCoinbaseData, transactionsApi, action, 0)
 }

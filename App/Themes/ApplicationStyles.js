@@ -43,7 +43,8 @@ const ApplicationStyles = {
     titleText: {
       ...Fonts.style.h2,
       fontSize: 14,
-      color: Colors.text
+      color: Colors.text,
+      paddingTop: 4
     },
     header: {
       marginTop: Metrics.baseMargin*3,

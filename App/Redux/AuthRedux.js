@@ -4,12 +4,17 @@ import Immutable from 'seamless-immutable'
 /* ------------- Types and Action Creators ------------- */
 
 const { Types, Creators } = createActions({
-  authRequest: ['access_token', 'refresh_token'],
-  authSuccess: ['accounts', 'transactions'],
-  authFailure: null,
-  authRefreshRequest: ['refresh_token'],
-  authRefreshSucess: ['access_token', 'refresh_token'],
-  authRefreshFailure: null
+  initAuth: ['access_token', 'refresh_token', 'token_expiration'],
+  authSuccess: null,
+  accountsPollStart: null,
+  accountsPollStop: null,
+  authRefreshRequest: null,
+  authRefreshSuccess: ['access_token', 'refresh_token', 'token_expiration'],
+  authRefreshFailure: null,
+  accountsRequest: null,
+  accountsSuccess: ['accounts', 'transactions'],
+  accountsFailure: null,
+  logout: null
 })
 
 export const AuthTypes = Types
@@ -20,59 +25,68 @@ export default Creators
 export const INITIAL_STATE = Immutable({
   access_token: null,
   refresh_token: null,
-  fetching: null,
+  token_expiration: null,
+  init_fetching: false,
   accounts: null,
   transactions: null,
-  error: null
+  error_refresh: false,
+  error_accounts: false
 })
 
 /* ------------- Reducers ------------- */
 
-export const requestAccounts = (state, { access_token, refresh_token }) =>
+export const initialAuth = (state, { access_token, refresh_token, token_expiration }) =>
   state.merge({
-    fetching: true, access_token, refresh_token,
+    access_token, refresh_token, token_expiration,
     accounts: null,
-    transactions: null
+    transactions: null,
+    init_fetching: true
   })
 
-export const successAccounts = (state, action) => {
+export const initialAuthSuccess = state => state.merge({init_fetching: false})
+
+// reducers to refresh access_token
+export const authRefreshSuccess = (state, action) => {
+  const { access_token, refresh_token, token_expiration } = action
+  return state.merge({ access_token, refresh_token, token_expiration })
+}
+
+export const authRefreshFailure = state => {
+  return state.merge({ error_refresh: true })
+}
+
+// reducers for transactions
+export const accountsRequest = state => {
+  return state.merge({ error_accounts: false, fetching: true })
+}
+
+export const accountsSuccess = (state, action) => {
   const { accounts, transactions } = action
   return state.merge({
-    fetching: false, error: null,
+    fetching: false,
+    error_accounts: false,
     accounts,
     transactions
   })
 }
 
-export const failureAccounts = state =>
+export const accountsFailure = state =>
   state.merge({
-    fetching: false, error: true,
-    accounts: null,
-    transactions: null
+    fetching: false, error_accounts: true,
   })
-
-export const refreshAuthRequest = (state) => (state, { refresh_token }) =>
-  state.merge({ fetching: true, refresh_token, access_token: null})
-
-export const refreshAuthSuccess = (state, action) => {
-  const { access_token, refresh_token } = action
-  return state.merge({ fetching: false, error: null, access_token, refresh_token })
-}
-
-export const refreshAuthFailure  = state =>
-  state.merge({ fetching: false, error: true, accounts: null, access_token: null, refresh_token: null })
 
 export const logout = (state) => INITIAL_STATE
 
 
 /* ------------- Hookup Reducers To Types ------------- */
 export const reducer = createReducer(INITIAL_STATE, {
-  [Types.AUTH_REQUEST]: requestAccounts,
-  [Types.AUTH_SUCCESS]: successAccounts,
-  [Types.AUTH_FAILURE]: failureAccounts,
-  [Types.AUTH_REFRESH_REQUEST]: refreshAuthRequest,
-  [Types.AUTH_REFRESH_SUCCESS]: refreshAuthSuccess,
-  [Types.AUTH_REFRESH_FAILURE]: refreshAuthFailure,
+  [Types.INIT_AUTH]: initialAuth,
+  [Types.AUTH_SUCCESS]: initialAuthSuccess,
+  [Types.AUTH_REFRESH_SUCCESS]: authRefreshSuccess,
+  [Types.AUTH_REFRESH_FAILURE]: authRefreshFailure,
+  [Types.ACCOUNTS_REQUEST]: accountsRequest,
+  [Types.ACCOUNTS_SUCCESS]: accountsSuccess,
+  [Types.ACCOUNTS_FAILURE]: accountsFailure,  
   [Types.LOGOUT]: logout
 })
 

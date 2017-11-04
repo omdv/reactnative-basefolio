@@ -127,7 +127,8 @@ function initReturnsResult() {
       current_value: 0,
       return: 0,
       open_gain: 0,
-      closed_gain: 0
+      closed_gain: 0,
+      cost_basis: 0
     },
     summaries: [{
       coin: "None",

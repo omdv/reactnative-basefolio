@@ -1,4 +1,4 @@
-import { takeLatest, fork } from 'redux-saga/effects'
+import { takeLatest } from 'redux-saga/effects'
 import DebugConfig from '../Config/DebugConfig'
 
 /* ------------- API ------------- */
@@ -9,44 +9,43 @@ import FixtureAPI from '../Services/FixtureApi'
 import CryptoPricesAPI from '../Services/CryptoPricesApi'
 
 /* ------------- Types ------------- */
-
 import { StartupTypes } from '../Redux/StartupRedux'
-import { GithubTypes } from '../Redux/GithubRedux'
 import { AuthTypes } from '../Redux/AuthRedux'
-import { TransactionsTypes } from '../Redux/TransactionsRedux'
 import { CryptoPricesTypes } from '../Redux/CryptoPricesRedux'
 
 /* ------------- Sagas ------------- */
-
 import { startup } from './StartupSagas'
-import { getUserAvatar } from './GithubSagas'
-import { getUserData, getAccounts, getAllData } from './AuthSagas'
-import { getTransactions} from './TransactionsSagas'
-import { refreshAllPrices, refreshCurrentPrices, pollPrices } from './CryptoPricesSagas'
+import { getCoinbaseDataOnce, loginSaga, startCoinbasePoll } from './AuthSagas'
+import { getAllPricesOnce, getCurrentPricesOnce, startPricePoll } from './CryptoPricesSagas'
 
 
 /* ------------- API ------------- */
 
-const api = DebugConfig.useFixtures ? FixtureAPI : API.create()
 const coinWalletApi = CoinbaseWalletAPI.create()
 const coinAuthApi = CoinbaseAuthAPI.create()
 const pricesApi = DebugConfig.useFixtures ? FixtureAPI : CryptoPricesAPI.create()
+// const pricesApi = CryptoPricesAPI.create()
+
 
 /* ------------- Connect Types To Sagas ------------- */
 
 export default function * root () {
   yield [
-    // some sagas only receive an action
+    // Startup saga
     takeLatest(StartupTypes.STARTUP, startup),
-    // some sagas receive extra parameters in addition to an action
-    // takeLatest(GithubTypes.USER_REQUEST, getUserAvatar, api),
+
+    // meta saga to ensure all data is pulled before login
+    takeLatest(StartupTypes.STARTUP, loginSaga),    
+
+    // Accounts and transactions on request and/or login
+    takeLatest(AuthTypes.ACCOUNTS_REQUEST, getCoinbaseDataOnce, coinWalletApi),
+
+    // Starting polls for accounts and access token
+    takeLatest(AuthTypes.ACCOUNTS_POLL_START, startCoinbasePoll, coinAuthApi, coinWalletApi),
     
-    // Accounts and transactions on login
-    takeLatest(AuthTypes.AUTH_REQUEST, getAllData, coinWalletApi),
-    
-    // Prices
-    takeLatest(CryptoPricesTypes.PRICE_POLL_START, pollPrices, pricesApi, pricesApi),    
-    takeLatest(CryptoPricesTypes.CURR_PRICES_REQUEST, refreshCurrentPrices, pricesApi),
-    takeLatest(CryptoPricesTypes.PRICE_REFRESH_ALL_REQUEST, refreshAllPrices, pricesApi),    
+    // Prices - poll, on request and/or login
+    takeLatest(CryptoPricesTypes.CURR_PRICES_REQUEST, getCurrentPricesOnce, pricesApi),
+    takeLatest(CryptoPricesTypes.ALL_PRICES_REQUEST, getAllPricesOnce, pricesApi),
+    takeLatest(CryptoPricesTypes.PRICE_POLL_START, startPricePoll, pricesApi, pricesApi)
   ]
 }
