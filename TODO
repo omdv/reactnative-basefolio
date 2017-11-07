@@ -1,10 +1,19 @@
 TODO:
+
+features:
+- (DONE) prices re-download
+- (DONE) logout
+- add functionality to add positions
+- returns over different periods
+- add totals to positions screen
+
 - request historical prices only for dates when orders are active - depends on whether I'll allow to add transactions manually later?
 REMOVE - Add positions acquired before coinbase, i.e. when coins are send to Coinbase
 - acitivity indicators
 - different failures when requesting API
 - disable refresh button when fetching
 - when refreshing prices it launches an infinite loop
+- if initial prices fail but accounts go through - the activity indicator keeps going
 
 PRIOR TO RELEASE:
 - Clean AccountsRedux and Sagas - redundant

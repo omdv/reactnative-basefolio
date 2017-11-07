@@ -5,6 +5,7 @@ export default (trans) => {
     trans.map(e => {
         e.amount.amount = Number(e.amount.amount)
         e.native_amount.amount = Number(e.native_amount.amount)
+        e.transaction_source = "Coinbase"
     })
     return trans
 }

@@ -20,10 +20,10 @@ const getRefreshToken = (state) => state.auth.refresh_token
 const getAccessToken = (state) => state.auth.access_token
 
 function * getUserData (api, action) {
-  const { access_token, refresh_token } = action
+  const access_token = yield select(getAccessToken)
   const response = yield call(api.getUser, access_token)
   if (response.ok) {
-    yield put(AuthActions.authSuccess(response.data))
+    yield put(AuthActions.userDataSuccess(response.data.data))
   } else {
     yield put(AuthActions.authFailure())
   }
@@ -140,31 +140,23 @@ function* refreshTransactionsPoll(api, action, millis) {
 
 // saga to get all information prior to successful auth
 export function * loginSaga(action) {
-  yield all([
-    take(AuthTypes.ACCOUNTS_SUCCESS),
-    take(CryptoPricesTypes.HIST_PRICES_SUCCESS),
-    take(CryptoPricesTypes.CURR_PRICES_SUCCESS)
-  ])
-  yield put(AuthActions.authSuccess())
+  while (true) {
+    yield all([
+      take(AuthTypes.ACCOUNTS_SUCCESS),
+      take(CryptoPricesTypes.HIST_PRICES_SUCCESS),
+      take(CryptoPricesTypes.CURR_PRICES_SUCCESS)
+    ])
+    yield put(AuthActions.authSuccess())
+  }
 }
 
 export function * startCoinbasePoll(authApi, transactionsApi, action) {
-  yield fork(refreshTokenPoll, authApi, action, 300*1000)
-  yield fork(refreshTransactionsPoll, transactionsApi, action, 1800*1000)
-}
-
-// called on accountsRefreshPollStart
-function * pollAccounts(transactionsApi, action) {
-  yield fork(refreshTransactionsPoll, transactionsApi, action, 1800*1000)
-}
-
-// called on authRefreshPollStart
-function * pollAccessToken(authApi, action) {
-  yield fork(refreshTokenPoll, authApi,300*1000)
+  yield fork(refreshTokenPoll, authApi, action, 3949*1000)
   yield fork(refreshTransactionsPoll, transactionsApi, action, 1800*1000)
 }
 
 // called on accountsRequest
 export function * getCoinbaseDataOnce(transactionsApi, action) {
+  yield call(getUserData, transactionsApi, action)
   yield call(getCoinbaseData, transactionsApi, action, 0)
 }

@@ -4,7 +4,8 @@ import Immutable from 'seamless-immutable'
 /* ------------- Types and Action Creators ------------- */
 
 const { Types, Creators } = createActions({
-  setRehydrationComplete: null
+  setRehydrationComplete: null,
+  setNoRehydration: null
 })
 
 export const AppStateTypes = Types

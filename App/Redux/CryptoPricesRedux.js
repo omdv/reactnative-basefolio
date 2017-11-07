@@ -7,11 +7,11 @@ const { Types, Creators } = createActions({
   pricePollStart: null,
   pricePollStop: null,
   allPricesRequest: null,
-  allPricesSuccess: ['hist_prices', 'current_prices'],
+  allPricesSuccess: null,
   allPricesFailure: null,
   histPricesRequest: null,
-  histPricesSuccess: ['hist_prices'],
-  histPricesFailure: null,
+  histPricesSuccess: ['hist_prices', 'hist_prices_end_date'],
+  histPricesFailure: ['error'],
   currPricesRequest: null,
   currPricesSuccess: ['current_prices'],
   currPricesFailure: null 
@@ -24,9 +24,11 @@ export default Creators
 
 export const INITIAL_STATE = Immutable({
   fetching: null,
+  fetching_current: null,
   hist_prices: null,
+  hist_prices_end_date: null,
   error: null,
-  current_prices: null
+  current_prices: null,
 })
 
 /* ------------- Reducers ------------- */
@@ -36,25 +38,24 @@ export const hist_request = state =>
   state.merge({ fetching: true, hist_prices: null })
 
 export const hist_success = (state, action) => {
-  const { hist_prices } = action
-  return state.merge({ fetching: false, error: null, hist_prices })}
+  const { hist_prices, hist_prices_end_date } = action
+  return state.merge({ fetching: false, error: null, hist_prices, hist_prices_end_date })}
 
-  export const hist_failure = state =>
-  state.merge({ fetching: false, error: true, hist_prices: null })
+export const hist_failure = (state, action) => {
+  const { error } = action
+  return state.merge({ fetching: false, hist_prices: null, hist_prices_end_date: null, error })}
 
 // Reducers for current prices
 export const current_prices_request = state => {
-  return state.merge({ fetching: true, error: null })
-}
+  return state.merge({ fetching_current: true, error: null })}
 
 export const current_prices_success = (state, action) => {
   const { current_prices } = action
-  return state.merge({ current_prices, error: null })
-}
+  return state.merge({ current_prices, error: null, fetching_current: null })}
 
 export const current_prices_failure = (state) => {
-  return state.merge({ error: true })
-}
+  return state.merge({ error: 'Failed to download current spot prices', fetching_current: null })}
+
 
 // Reducers for refresh all
 export const refresh_all_prices_request = state => {
@@ -63,11 +64,11 @@ export const refresh_all_prices_request = state => {
 
 export const refresh_all_prices_success = (state, action) => {
   const { hist_prices, current_prices } = action
-  return state.merge({ hist_prices, current_prices, error: null })
+  return state.merge({ hist_prices, current_prices, error: null, fetching: null })
 }
 
 export const refresh_all_prices_failure = (state) => {
-  return state.merge({ error: true })
+  return state.merge({ error: 'Failed to refresh prices', fetching: null })
 }
 
 /* ------------- Hookup Reducers To Types ------------- */
@@ -83,3 +84,8 @@ export const reducer = createReducer(INITIAL_STATE, {
   [Types.ALL_PRICES_SUCCESS]: refresh_all_prices_success,
   [Types.ALL_PRICES_FAILURE]: refresh_all_prices_failure
 })
+
+// Helpers
+export const hasHistPrices = (pricesState) => pricesState.hist_prices !== null
+export const getHistPrices = (pricesState) => pricesState.hist_prices
+export const getHistPricesEnd = (pricesState) => pricesState.hist_prices_end_date

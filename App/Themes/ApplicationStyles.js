@@ -24,14 +24,21 @@ const ApplicationStyles = {
       backgroundColor: Colors.transparent
     },
     section: {
-      margin: Metrics.section,
-      padding: Metrics.baseMargin
+      margin: Metrics.smallMargin,
+      padding: Metrics.baseMargin,
+      backgroundColor: Colors.section_background,
+      borderRadius: 5
     },
     sectionText: {
       ...Fonts.style.normal,
-      paddingVertical: Metrics.doubleBaseMargin,
+      paddingVertical: Metrics.smallMargin,
       color: Colors.snow,
       marginVertical: Metrics.smallMargin,
+      textAlign: 'center'
+    },
+    sectionTitle: {
+      ...Fonts.style.h4,
+      color: Colors.snow,
       textAlign: 'center'
     },
     subtitle: {

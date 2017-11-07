@@ -6,5 +6,9 @@ export default StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background
+  },
+  divider: {
+    borderBottomColor: Colors.charcoal,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   }
 })

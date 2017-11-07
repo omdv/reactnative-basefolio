@@ -14,6 +14,7 @@ const { Types, Creators } = createActions({
   accountsRequest: null,
   accountsSuccess: ['accounts', 'transactions'],
   accountsFailure: null,
+  userDataSuccess: ['user_profile'],
   logout: null
 })
 
@@ -30,7 +31,8 @@ export const INITIAL_STATE = Immutable({
   accounts: null,
   transactions: null,
   error_refresh: false,
-  error_accounts: false
+  error_accounts: false,
+  user_profile: null
 })
 
 /* ------------- Reducers ------------- */
@@ -75,6 +77,10 @@ export const accountsFailure = state =>
     fetching: false, error_accounts: true,
   })
 
+export const userDataSuccess = (state, action) => {
+  const { user_profile } = action
+  return state.merge({ user_profile: user_profile })}
+
 export const logout = (state) => INITIAL_STATE
 
 
@@ -86,7 +92,8 @@ export const reducer = createReducer(INITIAL_STATE, {
   [Types.AUTH_REFRESH_FAILURE]: authRefreshFailure,
   [Types.ACCOUNTS_REQUEST]: accountsRequest,
   [Types.ACCOUNTS_SUCCESS]: accountsSuccess,
-  [Types.ACCOUNTS_FAILURE]: accountsFailure,  
+  [Types.ACCOUNTS_FAILURE]: accountsFailure,
+  [Types.USER_DATA_SUCCESS]: userDataSuccess,
   [Types.LOGOUT]: logout
 })
 

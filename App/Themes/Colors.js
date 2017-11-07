@@ -27,7 +27,9 @@ const colors = {
   graph: '#e73536',
   sparkline: 'rgba(255,255,255, 0.75)',
   navigation: 'grey',
+  navigation_inactive: '#111111',
   header_background: '#111111',
+  section_background: '#111111',
   summaryText: 'white',
   coinbase: '#2b71b1'
 }

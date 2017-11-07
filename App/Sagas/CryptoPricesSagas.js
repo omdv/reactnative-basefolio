@@ -11,12 +11,17 @@
 *************************************************************/
 
 import { delay } from 'redux-saga'
-import { call, take, put, all, fork, race } from 'redux-saga/effects'
-import CryptoPricesActions, { CryptoPricesTypes }  from '../Redux/CryptoPricesRedux'
-import TransformHistPrices from '../Transforms/TransformHistPrices'
+import { call, take, put, all, fork, race, select } from 'redux-saga/effects'
+import CryptoPricesActions, { CryptoPricesTypes, hasHistPrices, getHistPricesEnd, getHistPrices }  from '../Redux/CryptoPricesRedux'
+import { TransformHistPrices, MergeHistPrices} from '../Transforms/TransformHistPrices'
 
 // Supported coins
 var coins = require('../Config/Coins')['coins']
+
+// Other states
+const selectHasHistPrices = (state) => hasHistPrices(state.prices)
+const selectHistPrices = (state) => getHistPrices(state.prices)
+const selectHistPricesEnd = (state) => getHistPricesEnd(state.prices)
 
 // Fetch current prices                                      
 function* pollCurrentPrices(api, action, millis) {
@@ -41,35 +46,79 @@ function* pollCurrentPrices(api, action, millis) {
 }
 
 // helper to introduce delay between api calls to avoid ban
-function * pollHistPriceForOneCoin(api, coin) {
-  const response = yield call(api.getDailyHistPrices, coin)
+function * pollHistPriceForOneCoin(api, coin, period) {
+  let response = {}
+  if (period === -1) {
+    response = yield call(api.getDailyHistPrices, coin)
+  } else {
+    response = yield call(api.getDailyHistPricesPeriod, coin, period) 
+  }
+  let deb = true
   yield call(delay, 3000)
   return response
 }
 
 function* pollDailyHistPrices(api, action, millis) {
-  let failure = false
-  let prices = {}
+  // get the end of the current hist prices and check if need to call API
+  const hasPrices = yield select(selectHasHistPrices)
+  const old_hist_prices = yield select(selectHistPrices)
+  const prices_end = yield select(selectHistPricesEnd)
+  const now = new Date().getTime()/1000
 
-  let response = yield all(
-    coins.map(coin => call(pollHistPriceForOneCoin, api, coin))
-  )
+  // call API only if no prices or in a new day
+  if (!hasPrices) {
+    let response = yield all(
+      coins.map(coin => call(pollHistPriceForOneCoin, api, coin, -1))
+    )
 
-  // check for summary status
-  let ok = response.map(a => a.ok).reduce((a,b) => a && b)
-  
-  // convert to object
-  for (i in response) {
-    prices[coins[i]] = response[i].data.Data
-  }
+    // get summary status
+    let ok = response.map(a => a.ok).reduce((a,b) => a && b)
+    
+    // transform prices and get derived variables
+    var [ prices, end_dates, validation ] = TransformHistPrices(response, coins)
+    
+    // success?
+    if (ok & validation) {
+      yield put(CryptoPricesActions.histPricesSuccess(prices, end_dates['BTC']))
+    } else {
+      if (!ok) {
+        yield put(CryptoPricesActions.histPricesFailure('Failed to download historical prices'))
+      } else if (!validation) {
+        yield put(CryptoPricesActions.histPricesFailure('Historical prices are invalid'))
+      }
+    }
+  } else if (hasPrices && (now > (prices_end + 86400))) {
+    // get new data and merge
 
-  prices = TransformHistPrices(prices)
-  
-  // success?
-  if (ok) {
-    yield put(CryptoPricesActions.histPricesSuccess(prices))
+    // estimate how many days passed since last update
+    let time_since_update = Math.ceil((now-prices_end)/86400)-1
+    
+    response = yield all(
+      coins.map(coin => call(pollHistPriceForOneCoin, api, coin, time_since_update))
+    )
+
+    // get summary status
+    let ok = response.map(a => a.ok).reduce((a,b) => a && b)
+    
+    // transform prices and get derived variables
+    var [ prices, end_dates, validation ] = TransformHistPrices(response, coins)
+
+    // merge prices
+    var new_prices = MergeHistPrices(old_hist_prices, prices)
+
+    if (ok & validation) {
+      // concat two arrays
+      yield put(CryptoPricesActions.histPricesSuccess(new_prices, end_dates['BTC']))
+    } else {
+      if (!ok) {
+        yield put(CryptoPricesActions.histPricesFailure('Failed to download new historical prices'))
+      } else if (!validation) {
+        yield put(CryptoPricesActions.histPricesFailure('New historical prices are invalid'))
+      }
+    }
   } else {
-    yield put(CryptoPricesActions.histPricesFailure())
+    // just post success
+    yield put(CryptoPricesActions.histPricesSuccess(old_hist_prices, prices_end['BTC']))
   }
 
   // delay
@@ -98,8 +147,8 @@ function* historyPricesPoll(api, action, millis) {
 
 // called on PRICE_POLL_START
 export function* startPricePoll(api1, api2, action) {
-  yield fork(spotPricesPoll, api1, action, 300*1000)
-  yield fork(historyPricesPoll, api2, action, 6000*1000)
+  yield fork(spotPricesPoll, api1, action, 30*1000)
+  yield fork(historyPricesPoll, api2, action, 10*1000)
 }
 
 // one time refresh without delays

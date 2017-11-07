@@ -89,9 +89,8 @@ class AccountsScreen extends Component {
   }
 
   componentDidMount () {
-    this.props.startPricePolling()
-    this.props.startCoinbasePolling()
-    // this.props.refreshAllPrices(this.state.assets)
+    // this.props.startPricePolling()
+    // this.props.startCoinbasePolling()
     this.callFinancialAnalysis()
   }
 
@@ -100,34 +99,44 @@ class AccountsScreen extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    // Re-assign hist_prices
-    if (nextProps.hist_prices != this.props.hist_prices) {
-      this.props.hist_prices = nextProps.hist_prices
-      this.setState({
-        hist_prices: nextProps.hist_prices
-      })
-    }
+    // // Re-assign hist_prices
+    // if (nextProps.hist_prices != this.props.hist_prices) {
+    //   this.props.hist_prices = nextProps.hist_prices
+    //   this.setState({
+    //     hist_prices: nextProps.hist_prices
+    //   })
+    // }
 
-    // Re-assign current_prices
-    if (nextProps.current_prices != this.props.current_prices) {
-      this.props.current_prices = nextProps.current_prices
-      this.setState({
-        current_prices: nextProps.current_prices
-      })
-    }
+    // // Re-assign current_prices
+    // if (nextProps.current_prices != this.props.current_prices) {
+    //   this.props.current_prices = nextProps.current_prices
+    //   this.setState({
+    //     current_prices: nextProps.current_prices
+    //   })
+    // }
 
-    // get new summary
-    this.callFinancialAnalysis()
+    // TODO: enable all props
+    this.setState({
+      hist_prices: nextProps.hist_prices,
+      current_prices: nextProps.current_prices,
+      // transactions: nextProps.transactions, 
+      // accounts: nextProps.accounts
+    }, () => this.callFinancialAnalysis())
+
   }
 
   render () {
     const { financial_summary, assets } = this.state
-    const { refreshCurrentPrices } = this.props
+    const { refreshCurrentPrices, refreshAllPrices, fetching_current } = this.props
     return (
       <ScrollView style={styles.container}>
         <View style={styles.header} >
           <View style={{width: 50}}><Icon name='settings' color={Colors.navigation} onPress={() => this.props.navigation.navigate('ConfigScreen')}/></View>
-          <View style={{width: 50}}><Icon name='refresh' color={Colors.navigation} onPress={() => refreshCurrentPrices()} /></View> 
+          <View style={{width: 50}}>
+            <Icon name='refresh'
+              color={fetching_current ? Colors.navigation_inactive : Colors.navigation}
+              onPress={!fetching_current ? () => refreshAllPrices(): () => null} />
+          </View> 
         </View>
         <View style={styles.content}>
           <SummarySheet summary={financial_summary.portfolio} />
@@ -156,6 +165,7 @@ class AccountsScreen extends Component {
 const mapStateToProps = (state) => {
   return {
     fetching: state.auth.fetching,
+    fetching_current: state.auth.fetching_current,
     accounts: state.auth.accounts,
     transactions: state.auth.transactions,
     hist_prices: state.prices.hist_prices,
@@ -169,7 +179,7 @@ const mapDispatchToProps = (dispatch) => {
     startPricePolling: () => dispatch(CryptoPricesActions.pricePollStart()),
     stopPricePolling: () => dispatch(CryptoPricesActions.pricePollStop()),
     refreshCurrentPrices: () => dispatch(CryptoPricesActions.currPricesRequest()),
-    refreshAllPrices: () => dispatch(CryptoPricesActions.priceRefreshAllRequest()),
+    refreshAllPrices: () => dispatch(CryptoPricesActions.allPricesRequest()),
     savePositions: (positions) =>dispatch(PositionsActions.positionsSave(positions))
   }
 }
