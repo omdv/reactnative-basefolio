@@ -14,7 +14,7 @@ import { delay } from 'redux-saga'
 import { call, put, all, select, fork, race, take } from 'redux-saga/effects'
 import AuthActions, { AuthTypes } from '../Redux/AuthRedux'
 import CryptoPricesActions, { CryptoPricesTypes }  from '../Redux/CryptoPricesRedux'
-import TransformTransactions from '../Transforms/TransformTransactions'
+import { TransformTransactionsForCoin, TransformAllTransactions } from '../Transforms/TransformTransactions'
 
 const getRefreshToken = (state) => state.auth.refresh_token
 const getAccessToken = (state) => state.auth.access_token
@@ -62,7 +62,7 @@ function * getTransactionsForAccount (api, account, access_token) {
         ok = false
       }
     }
-    transactions = TransformTransactions(account_data)
+    transactions = TransformTransactionsForCoin(account_data)
   } else {
     ok = false
   }
@@ -106,6 +106,10 @@ function * getCoinbaseData (api, action, millis) {
     // validate all OK's
     let ok = trans_response.map(a => a.ok).reduce((a,b) => a && b)
     let transactions = trans_response.map(a => a.data)
+
+    // transform all transactions
+    transactions = TransformAllTransactions(transactions)
+
     if (ok) {
       yield put(AuthActions.accountsSuccess(accounts, transactions))
     } else {

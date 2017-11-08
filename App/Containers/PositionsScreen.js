@@ -91,7 +91,7 @@ class PositionsScreen extends Component {
 
 const mapStateToProps = (state) => {
   return {
-    positions: state.positions.positions
+    positions: state.positions.positions,
   }
 }
 

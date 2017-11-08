@@ -165,7 +165,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
   if (Object.keys(hist_prices).length > 0) {
 
     // flatten transactions, filter only buy/sell and group by date
-    transactions = _.reduce(_.values(transactions),(s,x) => _.concat(s,x), [])
+    // transactions = _.reduce(_.values(transactions),(s,x) => _.concat(s,x), [])
     transactions = _.groupBy(transactions, 'date')
     
     // create a merged price object on dates
@@ -221,31 +221,31 @@ function getReturnsByDate(assets, transactions, hist_prices) {
             let sold_closed_gain = 0
 
             // update amounts
-            if (order.order_type === "buy") {
+            if (order.type === "buy") {
               // update positions for coin first
-              ptf[coin].cost_basis += order.cost_basis
-              ptf[coin].amount += order.amount
+              ptf[coin].cost_basis += order.native_amount.amount
+              ptf[coin].amount += order.amount.amount
 
               // add position
-              let current_value = current_prices[order.coin].close * order.amount
-              let gain = current_value - order.cost_basis
+              let current_value = current_prices[order.coin].close * order.amount.amount
+              let gain = current_value - order.native_amount.amount
               pos = {
                 'status': 'Open',
-                'amount': order.amount,
+                'amount': order.amount.amount,
                 'coin': order.coin,
                 'buy_price': order.price,
                 'buy_date': order.date,
-                'cost_basis': order.cost_basis,
+                'cost_basis': order.native_amount.amount,
                 'current_value': current_value,
                 'gain': gain,
-                'return': gain / order.cost_basis * 100,
+                'return': gain / order.native_amount.amount * 100,
                 'idx': open_pos_idx
               }
               // push to positions, increment index
               open_positions.push(_.cloneDeep(pos))
               open_pos_idx += 1
 
-            } else if (order.order_type === "sell") {
+            } else if (order.type === "sell") {
               // Sell logic
               // update amounts and cost_basis
               // find what positions we are going to close - need to get a cost basis for those.
@@ -257,36 +257,37 @@ function getReturnsByDate(assets, transactions, hist_prices) {
               
               // init overall order record
               let closed = {
-                'amount': Math.abs(order.amount),
+                'amount': Math.abs(order.amount.amount),
                 'oversold': false,
                 'coin': order.coin,
                 'sell_price': order.price,
                 'sell_date': order.date,
                 'idx': closed_pos_idx,
                 'closed_positions': [],
-                'sell_value': Math.abs(order.amount) * order.price
+                'sell_value': Math.abs(order.amount.amount) * order.price
               }
 
-              if (Math.abs(order.amount) > ptf[coin].amount) {
+              if (Math.abs(order.amount.amount) > ptf[coin].amount) {
+                // if oversold - adjust the amount to be equal to what we got
                 closed.oversold = true
-                order.amount = ptf[coin].amount
+                order.amount.amount = -ptf[coin].amount
                 order.sell_value = ptf[coin].amount*order.price
               }
 
-              let amount_left_to_sell = Math.abs(order.amount)
+              let amount_left_to_sell = Math.abs(order.amount.amount)
               
               // find all positions for this coin and sort it
               coin_open_pos = _.filter(open_positions, o => {return o.coin === coin})
               coin_open_pos = _.sortBy(coin_open_pos, o => o.buy_price)
 
               // loop until sold enough
-              for (var pos_idx=0; pos_idx<coin_open_pos.length-1; pos_idx++) {
+              for (var pos_idx=0; pos_idx<coin_open_pos.length; pos_idx++) {
                 if (amount_left_to_sell === 0) { break }
                 
                 // re-assign for simplicity
                 open_pos = coin_open_pos[pos_idx]
                 
-                if (amount_left_to_sell > open_pos.amount) {
+                if (amount_left_to_sell >= open_pos.amount) {
                   // close current position completely, append to closed and delete from open
                   let current_value = open_pos.amount * order.price
                   let gain = current_value - open_pos.cost_basis
@@ -353,13 +354,13 @@ function getReturnsByDate(assets, transactions, hist_prices) {
               // update the current closed position and push it to array
               closed['cost_basis'] = Math.abs(sold_cost_basis)
               closed['gain'] = closed['sell_value'] - closed['cost_basis']
-              closed['return'] = closed['gain'] / closed['cost_basis']
+              closed['return'] = closed['gain'] / closed['cost_basis'] * 100
               closed_positions.push(closed)
               closed_pos_idx += 1
               
               // now update cumulative values
               ptf[coin].cost_basis += sold_cost_basis
-              ptf[coin].amount += order.amount
+              ptf[coin].amount += order.amount.amount
               ptf[coin].closed_gain += sold_closed_gain
 
             }
@@ -437,10 +438,10 @@ export function getAnalysis(assets, transactions, accounts, spot_prices, hist_pr
   let prices = mergeSpotPricesWithHistorical(current_prices, hist_prices)
 
   // filter buy/sell transactions, parse dates, adjust amount for sell
-  let processed_transactions = processCoinbaseTransactions(assets, accounts, transactions)
+  // let processed_transactions = processCoinbaseTransactions(assets, accounts, transactions)
   
   // get returns by positions and for the portfolio
-  let returns = getReturnsByDate(assets, processed_transactions, prices)
+  let returns = getReturnsByDate(assets, transactions, prices)
 
   return {
     sparkline: {

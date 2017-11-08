@@ -56,7 +56,7 @@ class AccountsScreen extends Component {
       'LTC': {'USD': 65}
     }
     let default_accounts = require('../Fixtures/accounts.json')
-    let default_transactions = require('../Fixtures/transactions.json')
+    let default_transactions = require('../Fixtures/transactions_testing.json')
     let default_financial_summary = require('../Fixtures/default_summary.json')
     
     // initial state

@@ -46,6 +46,7 @@ export default class ClosedPositionCard extends Component {
             keyExtractor={(item, index) => index}
             ListEmptyComponent={() => <Text style={styles.rowText}> There were no coins to sell </Text>}
           />
+        {item.oversold && <Text style={styles.rowText}>There were not enough coins for full order!</Text>}
       </View>
     )
   }
