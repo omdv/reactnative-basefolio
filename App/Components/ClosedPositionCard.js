@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types';
-import { View, Text, FlatList } from 'react-native'
+import { View, Text, FlatList, TouchableOpacity } from 'react-native'
 import styles from './Styles/ClosedPositionCardStyle'
 import { Colors } from '../Themes'
 
@@ -8,6 +8,10 @@ export default class ClosedPositionCard extends Component {
   // Prop type warnings
   static propTypes = {
     item: PropTypes.object.isRequired,
+  }
+
+  constructor(props) {
+    super(props)
   }
 
   renderClosedPositions({item}) {
@@ -26,7 +30,9 @@ export default class ClosedPositionCard extends Component {
     const isPositive = item.gain > 0 ? 1 : 0
     const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit'}    
     return (
-      <View style={[styles.rowContainer, {backgroundColor: isPositive ? Colors.positive: Colors.negative}]}>
+      <TouchableOpacity
+        style={[styles.rowContainer, {backgroundColor: isPositive ? Colors.positive: Colors.negative}]}
+        onPress={() => this.props.navigation.navigate('OnePositionScreen', {transaction: item})}>
         <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
           <Text style={styles.rowText}>SELL: {item.amount.toFixed(8)}</Text>
           <Text style={styles.rowText}>@ {item.sell_price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
@@ -47,7 +53,7 @@ export default class ClosedPositionCard extends Component {
             ListEmptyComponent={() => <Text style={styles.rowText}> There were no coins to sell </Text>}
           />
         {item.oversold && <Text style={styles.rowText}>There were not enough coins for full order!</Text>}
-      </View>
+      </TouchableOpacity>
     )
   }
 }

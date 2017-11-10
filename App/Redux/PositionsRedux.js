@@ -4,7 +4,7 @@ import Immutable from 'seamless-immutable'
 /* ------------- Types and Action Creators ------------- */
 
 const { Types, Creators } = createActions({
-  positionsSave: ['positions'],
+  positionsSave: ['positions', 'summaries'],
   positionsRequest: ['data'],
   positionsSuccess: ['payload'],
   positionsFailure: null
@@ -17,6 +17,7 @@ export default Creators
 
 export const INITIAL_STATE = Immutable({
   positions: null,
+  summaries: null,
   data: null,
   fetching: null,
   payload: null,
@@ -27,8 +28,8 @@ export const INITIAL_STATE = Immutable({
 
 // successful api lookup
 export const save = (state, action) => {
-  const { positions } = action
-  return state.merge({ positions })
+  const { positions, summaries } = action
+  return state.merge({ positions, summaries })
 }
 
 // request the data from an api

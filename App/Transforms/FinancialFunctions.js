@@ -14,6 +14,17 @@ function dateToYMD(date) {
 }
 
 /**
+ * Create unique IDs
+ * @return {string} formatted string YYYY-MM-DD
+ */
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+/**
  * Flip the order of the array
  * @param {array} array to flip
  * @return {array} flipped array
@@ -230,7 +241,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
               let current_value = current_prices[order.coin].close * order.amount.amount
               let gain = current_value - order.native_amount.amount
               pos = {
-                'status': 'Open',
+                'type': 'Buy',
                 'amount': order.amount.amount,
                 'coin': order.coin,
                 'buy_price': order.price,
@@ -239,7 +250,8 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                 'current_value': current_value,
                 'gain': gain,
                 'return': gain / order.native_amount.amount * 100,
-                'idx': open_pos_idx
+                'idx': open_pos_idx,
+                'id': uuidv4()
               }
               // push to positions, increment index
               open_positions.push(_.cloneDeep(pos))
@@ -257,6 +269,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
               
               // init overall order record
               let closed = {
+                'type': 'Sell',
                 'amount': Math.abs(order.amount.amount),
                 'oversold': false,
                 'coin': order.coin,
@@ -264,7 +277,8 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                 'sell_date': order.date,
                 'idx': closed_pos_idx,
                 'closed_positions': [],
-                'sell_value': Math.abs(order.amount.amount) * order.price
+                'sell_value': Math.abs(order.amount.amount) * order.price,
+                'id': uuidv4()                
               }
 
               if (Math.abs(order.amount.amount) > ptf[coin].amount) {
@@ -334,7 +348,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                   cost_basis = pos_amount * open_pos.buy_price
                   gain = current_value - cost_basis
                   pos = {
-                    'status': 'Open',
+                    'type': 'Buy',
                     'amount': open_pos.amount - amount_sold,
                     'coin': open_pos.coin,
                     'buy_price': open_pos.buy_price,
@@ -343,7 +357,8 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                     'current_value': current_value,
                     'gain': gain,
                     'return': gain / cost_basis * 100,
-                    'idx': open_pos_idx
+                    'idx': open_pos_idx,
+                    'id': uuidv4()
                   }
                   open_positions.push(pos)
                   open_pos_idx += 1

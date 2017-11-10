@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { StackNavigator, addNavigationHelpers } from 'react-navigation'
+import OnePositionScreen from '../Containers/OnePositionScreen'
 import ConfigScreen from '../Containers/ConfigScreen'
 import PositionsScreen from '../Containers/PositionsScreen'
 import AccountsScreen from '../Containers/AccountsScreen'
@@ -11,6 +12,7 @@ import styles from './Styles/NavigationStyles'
 
 // Manifest of possible screens
 export const PrimaryNav = StackNavigator({
+  OnePositionScreen: { screen: OnePositionScreen },
   ConfigScreen: { screen: ConfigScreen },
   PositionsScreen: { screen: PositionsScreen },
   AccountsScreen: { screen: AccountsScreen },

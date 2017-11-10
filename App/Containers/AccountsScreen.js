@@ -85,7 +85,7 @@ class AccountsScreen extends Component {
       sparklines_duration
     )
     this.setState({financial_summary: financial_summary})
-    this.props.savePositions(financial_summary.positions)
+    this.props.savePositions(financial_summary.positions, financial_summary.summaries)
   }
 
   componentDidMount () {
@@ -180,7 +180,7 @@ const mapDispatchToProps = (dispatch) => {
     stopPricePolling: () => dispatch(CryptoPricesActions.pricePollStop()),
     refreshCurrentPrices: () => dispatch(CryptoPricesActions.currPricesRequest()),
     refreshAllPrices: () => dispatch(CryptoPricesActions.allPricesRequest()),
-    savePositions: (positions) =>dispatch(PositionsActions.positionsSave(positions))
+    savePositions: (positions, summaries) =>dispatch(PositionsActions.positionsSave(positions, summaries))
   }
 }
 

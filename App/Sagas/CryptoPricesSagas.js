@@ -54,7 +54,8 @@ function * pollHistPriceForOneCoin(api, coin, period) {
     response = yield call(api.getDailyHistPricesPeriod, coin, period) 
   }
   let deb = true
-  yield call(delay, 3000)
+  // TODO: return delay before production
+  yield call(delay, 0)
   return response
 }
 
