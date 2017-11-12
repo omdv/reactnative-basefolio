@@ -5,6 +5,8 @@ import Immutable from 'seamless-immutable'
 
 const { Types, Creators } = createActions({
   positionsSave: ['positions', 'summaries'],
+  onePositionUpdate: ['transaction'],
+  onePositionAdd: ['transaction'],
   positionsRequest: ['data'],
   positionsSuccess: ['payload'],
   positionsFailure: null
@@ -16,6 +18,7 @@ export default Creators
 /* ------------- Initial State ------------- */
 
 export const INITIAL_STATE = Immutable({
+  transaction: null,
   positions: null,
   summaries: null,
   data: null,
@@ -30,6 +33,12 @@ export const INITIAL_STATE = Immutable({
 export const save = (state, action) => {
   const { positions, summaries } = action
   return state.merge({ positions, summaries })
+}
+
+// oneposition reducer
+export const onePositionSave = (state, action) => {
+  const { transaction } = action
+  return state.merge({ transaction })
 }
 
 // request the data from an api
@@ -50,6 +59,8 @@ export const failure = state =>
 
 export const reducer = createReducer(INITIAL_STATE, {
   [Types.POSITIONS_SAVE]: save,
+  [Types.ONE_POSITION_UPDATE]: onePositionSave,
+  [Types.ONE_POSITION_SAVE]: onePositionSave,
   [Types.POSITIONS_REQUEST]: request,
   [Types.POSITIONS_SUCCESS]: success,
   [Types.POSITIONS_FAILURE]: failure

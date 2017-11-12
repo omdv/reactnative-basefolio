@@ -34,9 +34,11 @@ export default StyleSheet.create({
   },
   sectionHeader: {
     marginTop: Metrics.baseMargin,
+    backgroundColor: Colors.header_background,
+  },
+  sectionHeaderText: {
     fontSize: Fonts.size.medium,
     color: Colors.text,
-    backgroundColor: Colors.header_background,
     textAlign: 'center'
   }
 })

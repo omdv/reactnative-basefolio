@@ -15,6 +15,7 @@ const { Types, Creators } = createActions({
   accountsSuccess: ['accounts', 'transactions'],
   accountsFailure: null,
   userDataSuccess: ['user_profile'],
+  saveTransactions: ['transactions'],
   logout: null
 })
 
@@ -81,6 +82,11 @@ export const userDataSuccess = (state, action) => {
   const { user_profile } = action
   return state.merge({ user_profile: user_profile })}
 
+export const saveTransactions = (state, action) => {
+  const { transactions } = action
+  return state.merge({ transactions: transactions })
+}
+
 export const logout = (state) => INITIAL_STATE
 
 
@@ -94,6 +100,7 @@ export const reducer = createReducer(INITIAL_STATE, {
   [Types.ACCOUNTS_SUCCESS]: accountsSuccess,
   [Types.ACCOUNTS_FAILURE]: accountsFailure,
   [Types.USER_DATA_SUCCESS]: userDataSuccess,
+  [Types.SAVE_TRANSACTIONS]: saveTransactions,
   [Types.LOGOUT]: logout
 })
 

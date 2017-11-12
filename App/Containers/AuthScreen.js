@@ -93,9 +93,11 @@ class AuthScreen extends Component {
 
   render () {
     const { fetching } = this.props
+    const { getCoinbase } = this.props
     return (
       <ScrollView style={styles.container}>
         <RoundedButton text="Connect to Coinbase account" onPress={this._authCoinbase} />
+        <RoundedButton text="Test Coinbase" onPress={getCoinbase} />
         <ActivityIndicator size='large' animating={ fetching }/>
       </ScrollView>
     )

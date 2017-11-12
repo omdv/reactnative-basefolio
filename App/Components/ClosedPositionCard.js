@@ -19,8 +19,8 @@ export default class ClosedPositionCard extends Component {
     return (
         <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
           <Text style={styles.rowText}>{item.amount.toFixed(8)}</Text>
-          <Text style={styles.rowText}>bought @ {item.buy_price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
-          <Text style={styles.rowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.buy_date))}</Text>          
+          <Text style={styles.rowText}>bought @ {item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
+          <Text style={styles.rowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.date))}</Text>          
         </View>
     )
   }
@@ -30,13 +30,11 @@ export default class ClosedPositionCard extends Component {
     const isPositive = item.gain > 0 ? 1 : 0
     const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit'}    
     return (
-      <TouchableOpacity
-        style={[styles.rowContainer, {backgroundColor: isPositive ? Colors.positive: Colors.negative}]}
-        onPress={() => this.props.navigation.navigate('OnePositionScreen', {transaction: item})}>
+      <View style={[styles.rowContainer, {backgroundColor: isPositive ? Colors.positive: Colors.negative}]}>
         <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
           <Text style={styles.rowText}>SELL: {item.amount.toFixed(8)}</Text>
-          <Text style={styles.rowText}>@ {item.sell_price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
-          <Text style={styles.rowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.sell_date))}</Text>
+          <Text style={styles.rowText}>@ {item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
+          <Text style={styles.rowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.date))}</Text>
         </View>
         <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
           <Text style={styles.rowText}>COST: {item.cost_basis.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
@@ -53,7 +51,7 @@ export default class ClosedPositionCard extends Component {
             ListEmptyComponent={() => <Text style={styles.rowText}> There were no coins to sell </Text>}
           />
         {item.oversold && <Text style={styles.rowText}>There were not enough coins for full order!</Text>}
-      </TouchableOpacity>
+      </View>
     )
   }
 }

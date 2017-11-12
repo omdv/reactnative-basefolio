@@ -85,5 +85,8 @@ export default {
       ok: true,
       data: data
     }
+  },
+  getAccounts: (token) => {
+    
   }
 }

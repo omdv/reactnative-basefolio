@@ -15,15 +15,18 @@ export function TransformTransactionsForCoin(trans) {
     // flatten and convert to numeric
     trans = trans.data
 
-    trans.map(e => {
-        e.amount.amount = Number(e.amount.amount)
-        e.native_amount.amount = Number(e.native_amount.amount)
-        e.price = e.native_amount.amount / e.amount.amount
-        e.coin = e.amount.currency
-        e.transaction_source = "Coinbase"
-        e.time = Date.parse(e.created_at),
-        e.date = dateToYMD(Date.parse(e.created_at))
-    })
+    trans = trans.map(e => { return {
+        coin: e.amount.currency,
+        cost_basis: Number(e.native_amount.amount),
+        price: Number(e.native_amount.amount) / Number(e.amount.amount),
+        source: "Coinbase",
+        time: Date.parse(e.created_at),
+        date: dateToYMD(Date.parse(e.created_at)),
+        type: e.type,
+        amount: Number(e.amount.amount),
+        id: e.id   
+    }})
+
     return trans
 }
 
@@ -33,7 +36,14 @@ export function TransformAllTransactions(trans) {
     trans = _.filter(trans, v => (v.type === "buy") || (v.type === "sell"))
     
     // filter only supported coins
-    trans = _.filter(trans, v => (coins.includes(v.amount.currency)))
+    trans = _.filter(trans, v => (coins.includes(v.coin)))
 
     return trans
+}
+
+export function UpdateTransaction(trans, transactions) {
+    trans.time = new Date(trans.date).getTime()
+    transactions = _.filter(transactions, v => (v.id !== trans.id))
+    transactions.push(trans)
+    return transactions
 }

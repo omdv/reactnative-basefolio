@@ -119,7 +119,7 @@ class AccountsScreen extends Component {
     this.setState({
       hist_prices: nextProps.hist_prices,
       current_prices: nextProps.current_prices,
-      // transactions: nextProps.transactions, 
+      // transactions: nextProps.transactions,
       // accounts: nextProps.accounts
     }, () => this.callFinancialAnalysis())
 

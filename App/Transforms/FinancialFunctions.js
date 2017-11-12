@@ -105,10 +105,10 @@ function processCoinbaseTransactions(assets, accounts, transactions) {
       if (o.type === "buy" || o.type === "sell") {
         positions[i].push({
           'order_type': o.type,
-          'amount': o.amount.amount,
+          'amount': o.amount,
           'coin': o.amount.currency,
-          'price':  o.native_amount.amount / o.amount.amount,
-          'cost_basis': o.native_amount.amount,
+          'price':  o.cost_basis / o.amount,
+          'cost_basis': o.cost_basis,
           'time': Date.parse(o.created_at),
           'date': dateToYMD( Date.parse(o.created_at))
         })
@@ -234,24 +234,24 @@ function getReturnsByDate(assets, transactions, hist_prices) {
             // update amounts
             if (order.type === "buy") {
               // update positions for coin first
-              ptf[coin].cost_basis += order.native_amount.amount
-              ptf[coin].amount += order.amount.amount
+              ptf[coin].cost_basis += order.cost_basis
+              ptf[coin].amount += order.amount
 
               // add position
-              let current_value = current_prices[order.coin].close * order.amount.amount
-              let gain = current_value - order.native_amount.amount
+              let current_value = current_prices[order.coin].close * order.amount
+              let gain = current_value - order.cost_basis
               pos = {
-                'type': 'Buy',
-                'amount': order.amount.amount,
+                'type': 'buy',
+                'amount': order.amount,
                 'coin': order.coin,
-                'buy_price': order.price,
-                'buy_date': order.date,
-                'cost_basis': order.native_amount.amount,
+                'price': order.price,
+                'date': order.date,
+                'cost_basis': order.cost_basis,
                 'current_value': current_value,
                 'gain': gain,
-                'return': gain / order.native_amount.amount * 100,
+                'return': gain / order.cost_basis * 100,
                 'idx': open_pos_idx,
-                'id': uuidv4()
+                'id': order.id
               }
               // push to positions, increment index
               open_positions.push(_.cloneDeep(pos))
@@ -269,30 +269,30 @@ function getReturnsByDate(assets, transactions, hist_prices) {
               
               // init overall order record
               let closed = {
-                'type': 'Sell',
-                'amount': Math.abs(order.amount.amount),
+                'type': 'sell',
+                'amount': Math.abs(order.amount),
                 'oversold': false,
                 'coin': order.coin,
-                'sell_price': order.price,
-                'sell_date': order.date,
+                'price': order.price,
+                'date': order.date,
                 'idx': closed_pos_idx,
                 'closed_positions': [],
-                'sell_value': Math.abs(order.amount.amount) * order.price,
-                'id': uuidv4()                
+                'sell_value': Math.abs(order.amount) * order.price,
+                'id': order.id              
               }
 
-              if (Math.abs(order.amount.amount) > ptf[coin].amount) {
+              if (Math.abs(order.amount) > ptf[coin].amount) {
                 // if oversold - adjust the amount to be equal to what we got
                 closed.oversold = true
-                order.amount.amount = -ptf[coin].amount
+                order.amount = -ptf[coin].amount
                 order.sell_value = ptf[coin].amount*order.price
               }
 
-              let amount_left_to_sell = Math.abs(order.amount.amount)
+              let amount_left_to_sell = Math.abs(order.amount)
               
               // find all positions for this coin and sort it
               coin_open_pos = _.filter(open_positions, o => {return o.coin === coin})
-              coin_open_pos = _.sortBy(coin_open_pos, o => o.buy_price)
+              coin_open_pos = _.sortBy(coin_open_pos, o => o.price)
 
               // loop until sold enough
               for (var pos_idx=0; pos_idx<coin_open_pos.length; pos_idx++) {
@@ -307,8 +307,8 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                   let gain = current_value - open_pos.cost_basis
                   pos = {
                     'amount': open_pos.amount,
-                    'buy_price': open_pos.buy_price,
-                    'buy_date': open_pos.buy_date,
+                    'price': open_pos.price,
+                    'date': open_pos.date,
                     'cost_basis': open_pos.cost_basis,
                     'current_value': current_value,
                     'gain': gain,
@@ -324,13 +324,13 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                   // partial closure of the position
                   amount_sold = amount_left_to_sell
                   current_value = amount_sold*order.price
-                  cost_basis = amount_sold*open_pos.buy_price
+                  cost_basis = amount_sold*open_pos.price
                   gain = current_value - cost_basis
                   // create and add the closed position
                   pos = {
                     'amount': amount_sold,
-                    'buy_price': open_pos.buy_price,
-                    'buy_date': open_pos.buy_date,
+                    'price': open_pos.price,
+                    'date': open_pos.date,
                     'cost_basis': cost_basis,
                     'current_value': current_value,
                     'gain': gain,
@@ -345,20 +345,21 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                   // create and add the new split open position
                   pos_amount = open_pos.amount - amount_sold
                   current_value = current_prices[open_pos.coin].close * pos_amount
-                  cost_basis = pos_amount * open_pos.buy_price
+                  cost_basis = pos_amount * open_pos.price
                   gain = current_value - cost_basis
                   pos = {
-                    'type': 'Buy',
+                    'type': 'buy',
+                    'original_amount': open_pos.amount,
                     'amount': open_pos.amount - amount_sold,
                     'coin': open_pos.coin,
-                    'buy_price': open_pos.buy_price,
-                    'buy_date': open_pos.buy_date,
+                    'price': open_pos.price,
+                    'date': open_pos.date,
                     'cost_basis': cost_basis,
                     'current_value': current_value,
                     'gain': gain,
                     'return': gain / cost_basis * 100,
                     'idx': open_pos_idx,
-                    'id': uuidv4()
+                    'id': open_pos.id
                   }
                   open_positions.push(pos)
                   open_pos_idx += 1
@@ -375,7 +376,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
               
               // now update cumulative values
               ptf[coin].cost_basis += sold_cost_basis
-              ptf[coin].amount += order.amount.amount
+              ptf[coin].amount += order.amount
               ptf[coin].closed_gain += sold_closed_gain
 
             }
