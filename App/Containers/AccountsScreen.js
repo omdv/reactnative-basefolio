@@ -6,7 +6,8 @@ import {
   Text, 
   ActivityIndicator,
   Image,
-  ScrollView } from 'react-native'
+  ScrollView, 
+  TouchableOpacity} from 'react-native'
 
 // components
 import SummaryTable from '../Components/SummaryTable'
@@ -63,6 +64,7 @@ class AccountsScreen extends Component {
     this.state = {
       assets: coins,
       sparklines_duration: 14,
+      period: "week",
       
       // use from props
       accounts: accounts ? accounts : default_accounts,
@@ -75,17 +77,18 @@ class AccountsScreen extends Component {
   }
 
   callFinancialAnalysis() {
-    const { assets, current_prices, transactions, accounts, sparklines_duration, hist_prices } = this.state
+    const { assets, current_prices, transactions, accounts, sparklines_duration, hist_prices, period } = this.state
     financial_summary = getAnalysis(
       assets,
       transactions,
       accounts,
       current_prices,
       hist_prices,
-      sparklines_duration
+      sparklines_duration,
+      period
     )
     this.setState({financial_summary: financial_summary})
-    this.props.savePositions(financial_summary.positions, financial_summary.summaries)
+    this.props.savePositions(financial_summary.positions, financial_summary.summaries, financial_summary.returngraph)
   }
 
   componentDidMount () {
@@ -122,11 +125,16 @@ class AccountsScreen extends Component {
       // transactions: nextProps.transactions,
       // accounts: nextProps.accounts
     }, () => this.callFinancialAnalysis())
+  }
 
+  updateReturnsPlotPeriod(v) {
+    this.setState({
+      period: v
+    }, () => this.callFinancialAnalysis())
   }
 
   render () {
-    const { financial_summary, assets } = this.state
+    const { financial_summary, assets, period } = this.state
     const { refreshCurrentPrices, refreshAllPrices, fetching_current } = this.props
     return (
       <ScrollView style={styles.container}>
@@ -146,6 +154,14 @@ class AccountsScreen extends Component {
               yAccessor={d => d.gain}
               width={Metrics.screenWidth}
               height={Metrics.screenHeight/4} />
+          </View>
+          <View style={styles.graphControl}>
+            {['week', 'month', 'quarter', 'year', 'all'].map((v,i) => (
+              <TouchableOpacity style={{marginHorizontal: 10}} key={i} onPress={() => this.updateReturnsPlotPeriod(v)}>
+                <Text style={v === period ? styles.graphControlTextActive : styles.graphControlText}>{v}</Text>
+              </TouchableOpacity>
+            ))
+            }
           </View>
           <View style={styles.divider} />
           <SummaryTable

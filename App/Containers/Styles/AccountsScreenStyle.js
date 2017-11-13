@@ -19,5 +19,21 @@ export default StyleSheet.create({
   divider: {
     borderBottomColor: Colors.charcoal,
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  graphControl: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Metrics.baseMargin
+  },
+  graphControlText: {
+    color: Colors.navigation
+  },
+  graphControlTextActive: {
+    color: Colors.snow,
+    // textDecoration: "underline",
+    // textDecorationStyle: "solid",
+    // textDecorationColor: Colors.snow
   }
 })

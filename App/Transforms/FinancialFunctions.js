@@ -139,7 +139,9 @@ function initReturnsResult() {
       return: 0,
       open_gain: 0,
       closed_gain: 0,
-      cost_basis: 0
+      cost_basis: 0,
+      gain_period: 0,
+      return_period: 0
     },
     summaries: [{
       coin: "None",
@@ -147,9 +149,11 @@ function initReturnsResult() {
       cost:0,
       current_value:0 ,
       amount:0,
-      return:0
+      return:0,
+      gain_period: 0,
+      return_period: 0
     }],
-    returngraph: {
+    returnsGraph: {
       data: [
         {gain: 0}
       ]
@@ -426,6 +430,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
     // prepare returning object
     result = {
       returnsdata: _.values(_.mapValues(portfolio, o => o.portfolio)),
+      full_history: portfolio,
       portfolio: latest.portfolio,
       summaries: summaries,
       open_positions: open_positions,
@@ -443,9 +448,10 @@ function getReturnsByDate(assets, transactions, hist_prices) {
  * @param {array} array of spot prices
  * @param {array} array of current prices
  * @param {number} length of sparkline
+ * @param {string} period for calculation
  * @return {object} object with all combined values
  */
-export function getAnalysis(assets, transactions, accounts, spot_prices, hist_prices, sparkline_duration) {
+export function getAnalysis(assets, transactions, accounts, spot_prices, hist_prices, sparkline_duration, period) {
   // get sparkline data from raw historicals
   let sparkline_data = pricesForSparkLine(hist_prices, sparkline_duration)
 
@@ -458,6 +464,70 @@ export function getAnalysis(assets, transactions, accounts, spot_prices, hist_pr
   
   // get returns by positions and for the portfolio
   let returns = getReturnsByDate(assets, transactions, prices)
+
+  // apply period
+  switch(period) {
+    case "week": {
+      period_duration = 8
+      break
+    }
+    case "month": {
+      period_duration = 31
+      break
+    }
+    case "quarter": {
+      period_duration = 91
+      break
+    }
+    case "year": {
+      period_duration = 366
+      break
+    }
+    default: {
+      period_duration = -1
+      break
+    }
+  }
+
+  // try to do period application
+  try {
+    // get graph data
+    returnsData = returns.returnsdata
+    if (period_duration > 0) {
+      returnsData = returnsData.slice(returnsData.length-period_duration)
+    }
+    returns.returnsdata = returnsData
+
+    // get overall returns summary for given period
+    fh = returns.full_history
+    // TODO: use assets list
+    // needed to add the zero baseline otherwise numbers start from 1st day
+    fh.splice(0,0,{BTC: {gain: 0}, ETH: {gain: 0}, LTC: {gain: 0}, portfolio: {gain: 0}})
+    
+    if (period_duration > 0) {
+      fh = fh.slice(fh.length-period_duration)
+    }
+
+    // calculate delta in returns over period
+    processed = Object.keys(fh[0]).map(e => { return {gain: fh[fh.length-1][e].gain-fh[0][e].gain, cost_basis:fh[fh.length-1][e].cost_basis, coin:e}})
+    
+    // merge with summaries
+    summaries = returns.summaries
+    portfolio = returns.portfolio
+    
+    // assign to summaries
+    for (i=0; i<summaries.length; i++) {
+      summaries[i]['gain_period'] = processed[i].gain
+      summaries[i]['return_period'] = processed[i].gain/processed[i].cost_basis*100
+    }
+    returns.summaries = summaries
+
+    // assign to portfolio
+    portfolio.gain_period = processed[processed.length-1].gain
+    portfolio.return_period = processed[processed.length-1].gain/processed[processed.length-1].cost_basis*100
+    returns.portfolio = portfolio
+
+  } catch(err) {}
 
   return {
     sparkline: {

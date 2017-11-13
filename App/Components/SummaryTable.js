@@ -50,9 +50,9 @@ export default class SummaryTable extends Component {
   numToKey (item, num) {
     switch (num) {
       case 0:
-        return item.return.toFixed(2)+' %'
+        return item.return_period.toFixed(2)+' %'
       case 1:
-        return item.gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+        return item.gain_period.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
       case 2:
         return item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
     }
@@ -87,7 +87,7 @@ export default class SummaryTable extends Component {
   }
 
   renderRow ({item}) {
-    const isPositive = item.gain > 0 ? 1 : 0
+    const isPositive = item.gain_period > 0 ? 1 : 0
     const gainButtonWidth = Math.floor(Metrics.screenWidth/3)-2*Metrics.doubleBaseMargin
     
     // prepare sparkline data

@@ -11,7 +11,7 @@ export default class SummarySheet extends Component {
 
   render () {
     const { summary } = this.props
-    const isPositive = summary.gain > 0 ? true : false
+    const isPositive = summary.gain_period > 0 ? true : false
     return (
       <View style={styles.container}>
           <View>
@@ -19,7 +19,7 @@ export default class SummarySheet extends Component {
           </View>
           <View>
             <Text style={[styles.returnValue, {"color": isPositive ? Colors.positive : Colors.negative}]}>
-              {summary.gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} ({summary.return.toFixed(2)}%)
+              {summary.gain_period.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} ({summary.return_period.toFixed(2)}%)
             </Text>
           </View>
       </View>

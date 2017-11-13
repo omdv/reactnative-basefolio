@@ -28,17 +28,17 @@ class PositionsScreen extends Component {
 
   renderRowOpen ({item}) {
     return (
-      <TouchableOpacity style={{margin: 0, padding: 0}} onPress={() => this.props.navigation.navigate('OnePositionScreen', {transaction: item, ifUpdate: true})}>
+      <View style={{margin: 0, padding: 0}}>
         <OpenPositionCard item={item} />      
-      </TouchableOpacity>
+      </View>
     )
   }
 
   renderRowClosed ({item}) {
     return (
-      <TouchableOpacity style={{margin: 0, padding: 0}} onPress={() => this.props.navigation.navigate('OnePositionScreen', {transaction: item, ifUpdate: true})}>
+      <View style={{margin: 0, padding: 0}}>
         <ClosedPositionCard item={item} />
-      </TouchableOpacity>
+      </View>
     )
   }
 
@@ -56,12 +56,12 @@ class PositionsScreen extends Component {
         <View style={styles.header} >
           <View style={{width: 50}}><Icon name='chevron-left' color={Colors.navigation} onPress={() => goBack()}/></View>
           <View><Text style={styles.titleText}>Positions for {coin}</Text></View>
-          {/* <View style={{width: 50}}><Icon name='plus' type="entypo" color={Colors.navigation} onPress={() => this.props.navigation.navigate('OnePositionScreen', {ifUpdate: false})}/></View>  */}
+          <View style={{width: 50}}></View> 
         </View>
         <View style={styles.content}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionHeaderText}>Open positions</Text>
-            <Text style={styles.sectionHeaderText}>{summary[0].open_gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
+            <Text style={styles.sectionHeaderText}>P/L: {summary[0].open_gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
           </View>
           <FlatList
             contentContainerStyle={styles.listContent}

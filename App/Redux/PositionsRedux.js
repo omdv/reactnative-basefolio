@@ -30,7 +30,7 @@ export const INITIAL_STATE = Immutable({
 /* ------------- Reducers ------------- */
 
 // successful api lookup
-export const save = (state, action) => {
+export const saveAll = (state, action) => {
   const { positions, summaries } = action
   return state.merge({ positions, summaries })
 }
@@ -58,10 +58,8 @@ export const failure = state =>
 /* ------------- Hookup Reducers To Types ------------- */
 
 export const reducer = createReducer(INITIAL_STATE, {
-  [Types.POSITIONS_SAVE]: save,
+  [Types.POSITIONS_SAVE]: saveAll,
   [Types.ONE_POSITION_UPDATE]: onePositionSave,
   [Types.ONE_POSITION_SAVE]: onePositionSave,
-  [Types.POSITIONS_REQUEST]: request,
-  [Types.POSITIONS_SUCCESS]: success,
-  [Types.POSITIONS_FAILURE]: failure
+
 })

@@ -1,14 +1,16 @@
 import React, { Component } from 'react'
+import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import { View, Text, ART } from 'react-native'
 import * as scale from 'd3-scale'
 import * as shape from 'd3-shape'
 import * as d3Array from 'd3-array'
-// Graph Fnunctions
+// Graph Functions
 import * as graphUtils from '../Transforms/GraphUtils'
 // Styles
 import styles from './Styles/ReturnsGraphStyle'
 import { Colors } from '../Themes/'
+
 
 
 const {
