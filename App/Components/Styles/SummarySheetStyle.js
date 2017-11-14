@@ -18,6 +18,6 @@ export default StyleSheet.create({
     alignSelf: 'center',
     textAlign: 'center',
     margin: Metrics.smallMargin,
-    fontSize: Fonts.size.h6,
+    fontSize: Fonts.size.medium,
     }
 })

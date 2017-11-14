@@ -24,7 +24,7 @@ import { updateTransaction, addTransaction } from './PositionsSagas'
 /* ------------- API ------------- */
 const coinWalletApi = false ? FixtureAPI : CoinbaseWalletAPI.create()
 const coinAuthApi = false ? FixtureAPI : CoinbaseAuthAPI.create()
-const pricesApi = true ? FixtureAPI : CryptoPricesAPI.create()
+const pricesApi = false ? FixtureAPI : CryptoPricesAPI.create()
 
 
 /* ------------- Connect Types To Sagas ------------- */
