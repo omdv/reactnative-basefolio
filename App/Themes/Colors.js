@@ -1,5 +1,5 @@
 const colors = {
-  background: '#000000',
+  background: '#090909',
   clear: 'rgba(0,0,0,0)',
   facebook: '#3b5998',
   transparent: 'rgba(0,0,0,0)',
@@ -26,7 +26,8 @@ const colors = {
   negative: '#d73027',
   graph: '#e73536',
   sparkline: 'rgba(255,255,255, 0.75)',
-  navigation: 'grey',
+  navigation: '#808080',
+  almost_black: '#0F0F0F',
   navigation_inactive: '#111111',
   header_background: '#111111',
   section_background: '#111111',

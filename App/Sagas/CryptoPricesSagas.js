@@ -55,7 +55,7 @@ function * pollHistPriceForOneCoin(api, coin, period) {
   }
   let deb = true
   // TODO: return delay before production
-  yield call(delay, 0)
+  yield call(delay, 3)
   return response
 }
 
@@ -67,7 +67,7 @@ function* pollDailyHistPrices(api, action, millis) {
   const now = new Date().getTime()/1000
 
   // call API only if no prices or in a new day
-  if (!hasPrices) {
+  if (!hasPrices || !prices_end) {
     let response = yield all(
       coins.map(coin => call(pollHistPriceForOneCoin, api, coin, -1))
     )
@@ -119,7 +119,7 @@ function* pollDailyHistPrices(api, action, millis) {
     }
   } else {
     // just post success
-    yield put(CryptoPricesActions.histPricesSuccess(old_hist_prices, prices_end['BTC']))
+    yield put(CryptoPricesActions.histPricesSuccess(old_hist_prices, prices_end))
   }
 
   // delay
@@ -149,7 +149,7 @@ function* historyPricesPoll(api, action, millis) {
 // called on PRICE_POLL_START
 export function* startPricePoll(api1, api2, action) {
   yield fork(spotPricesPoll, api1, action, 30*1000)
-  yield fork(historyPricesPoll, api2, action, 10*1000)
+  yield fork(historyPricesPoll, api2, action, 60*1000)
 }
 
 // one time refresh without delays

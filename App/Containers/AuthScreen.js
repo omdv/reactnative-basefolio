@@ -97,7 +97,6 @@ class AuthScreen extends Component {
     return (
       <ScrollView style={styles.container}>
         <RoundedButton text="Connect to Coinbase account" onPress={this._authCoinbase} />
-        <RoundedButton text="Test Coinbase" onPress={getCoinbase} />
         <ActivityIndicator size='large' animating={ fetching }/>
       </ScrollView>
     )

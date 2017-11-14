@@ -37,7 +37,7 @@ class ConfigScreen extends Component {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Coinbase</Text>
               <Text style={styles.sectionText}>Logged in as {isAuthed ? user_profile.name : null}</Text>
-              <Text style={styles.sectionText}>Tracking {isAuthed ? accounts.length : null} accounts</Text>
+              <Text style={styles.sectionText}>Tracking {isAuthed ? accounts.length : null} wallets</Text>
             <RoundedButton text="Logout" onPress={() => coinbaseLogout()}/>
             </View>
           </View>

@@ -45,6 +45,7 @@ class AccountsScreen extends Component {
     savePositions: PropTypes.func,
     refreshAllPrices: PropTypes.func,
     refreshCurrentPrices: PropTypes.func,
+    refreshTransactions: PropTypes.func
   }
   
   constructor (props) {
@@ -74,6 +75,7 @@ class AccountsScreen extends Component {
       financial_summary: default_financial_summary
     }
     this.callFinancialAnalysis = this.callFinancialAnalysis.bind(this)
+    this.refreshAll = this.refreshAll.bind(this)
   }
 
   callFinancialAnalysis() {
@@ -91,9 +93,15 @@ class AccountsScreen extends Component {
     this.props.savePositions(financial_summary.positions, financial_summary.summaries, financial_summary.returngraph)
   }
 
+  refreshAll() {
+    this.props.refreshAllPrices()
+    this.props.refreshTransactions()
+  }
+
   componentDidMount () {
-    // this.props.startPricePolling()
-    // this.props.startCoinbasePolling()
+    // TODO: toggle polling prior to release
+    this.props.startPricePolling()
+    this.props.startCoinbasePolling()
     this.callFinancialAnalysis()
   }
 
@@ -102,28 +110,12 @@ class AccountsScreen extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    // // Re-assign hist_prices
-    // if (nextProps.hist_prices != this.props.hist_prices) {
-    //   this.props.hist_prices = nextProps.hist_prices
-    //   this.setState({
-    //     hist_prices: nextProps.hist_prices
-    //   })
-    // }
-
-    // // Re-assign current_prices
-    // if (nextProps.current_prices != this.props.current_prices) {
-    //   this.props.current_prices = nextProps.current_prices
-    //   this.setState({
-    //     current_prices: nextProps.current_prices
-    //   })
-    // }
-
-    // TODO: enable all props
+    // TODO: toggle all props prior to release
     this.setState({
       hist_prices: nextProps.hist_prices,
       current_prices: nextProps.current_prices,
-      // transactions: nextProps.transactions,
-      // accounts: nextProps.accounts
+      transactions: nextProps.transactions,
+      accounts: nextProps.accounts
     }, () => this.callFinancialAnalysis())
   }
 
@@ -136,6 +128,7 @@ class AccountsScreen extends Component {
   render () {
     const { financial_summary, assets, period } = this.state
     const { refreshCurrentPrices, refreshAllPrices, fetching_current } = this.props
+    const isPositive = financial_summary.portfolio.gain_period > 0 ? true : false
     return (
       <ScrollView style={styles.container}>
         <View style={styles.header} >
@@ -143,7 +136,7 @@ class AccountsScreen extends Component {
           <View style={{width: 50}}>
             <Icon name='refresh'
               color={fetching_current ? Colors.navigation_inactive : Colors.navigation}
-              onPress={!fetching_current ? () => refreshAllPrices(): () => null} />
+              onPress={!fetching_current ? () => this.refreshAll(): () => null} />
           </View> 
         </View>
         <View style={styles.content}>
@@ -153,7 +146,8 @@ class AccountsScreen extends Component {
               datum={financial_summary.returngraph.data}
               yAccessor={d => d.gain}
               width={Metrics.screenWidth}
-              height={Metrics.screenHeight/4} />
+              height={Metrics.screenHeight/4}
+              isPositive={isPositive} />
           </View>
           <View style={styles.graphControl}>
             {['week', 'month', 'quarter', 'year', 'all'].map((v,i) => (
@@ -196,6 +190,7 @@ const mapDispatchToProps = (dispatch) => {
     stopPricePolling: () => dispatch(CryptoPricesActions.pricePollStop()),
     refreshCurrentPrices: () => dispatch(CryptoPricesActions.currPricesRequest()),
     refreshAllPrices: () => dispatch(CryptoPricesActions.allPricesRequest()),
+    refreshTransactions: () => dispatch(AuthActions.accountsRequest()),
     savePositions: (positions, summaries) =>dispatch(PositionsActions.positionsSave(positions, summaries))
   }
 }

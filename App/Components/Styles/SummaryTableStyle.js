@@ -10,9 +10,11 @@ export default StyleSheet.create({
     flex: 1,
     height: Metrics.rowHeight,
     flexDirection: 'row',
-    margin: Metrics.baseMargin,
-    backgroundColor: Colors.background,
-    justifyContent: 'space-between'
+    margin: Metrics.smallMargin,
+    paddingHorizontal: Metrics.smallMargin,
+    backgroundColor: Colors.almost_black,
+    justifyContent: 'space-between',
+    borderRadius: 5
   },
 	rowBoldLabel: {
     fontWeight: 'bold',

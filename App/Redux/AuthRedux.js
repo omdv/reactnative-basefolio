@@ -108,3 +108,4 @@ export const reducer = createReducer(INITIAL_STATE, {
 
 // Is the current user logged in?
 export const isAuthed = (authState) => authState.refresh_token !== null
+export const hasTransactions = (authState) => authState.transactions !== null

@@ -142,7 +142,7 @@ function* refreshTransactionsPoll(api, action, millis) {
   }
 }
 
-// saga to get all information prior to successful auth
+// saga to make sure we get all information prior to successful auth
 export function * loginSaga(action) {
   while (true) {
     yield all([

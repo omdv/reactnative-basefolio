@@ -30,7 +30,8 @@ export default class ReturnsGraph extends Component {
     datum: PropTypes.array,
     yAccessor: PropTypes.func,
     width: PropTypes.number,
-    height: PropTypes.number
+    height: PropTypes.number,
+    isPositive: PropTypes.bool
   }
   
   constructor(props) {
@@ -38,7 +39,7 @@ export default class ReturnsGraph extends Component {
   }
   
   render() {
-    const { datum, yAccessor, width, height } = this.props
+    const { datum, yAccessor, width, height, isPositive } = this.props
     const graph = datum ? graphUtils.createLineGraph(datum,yAccessor,width,height) : {path: null}
     return (
       <View style={styles.container}>
@@ -46,12 +47,12 @@ export default class ReturnsGraph extends Component {
           <Group x={0} y={0}>
             <Shape
               d={graph.path}
-              stroke={Colors.graph}
+              stroke={isPositive ? Colors.positive : Colors.negative}
               strokeWidth={1}
             />
             <Shape
               d={graph.xaxis}
-              stroke={Colors.graph}
+              stroke={Colors.navigation}
               strokeWidth={0.2}
             />
           </Group>

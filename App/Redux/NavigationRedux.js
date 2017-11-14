@@ -37,7 +37,7 @@ export function reducer (state = INITIAL_STATE, action) {
     case 'SET_REHYDRATION_COMPLETE':
       return AUTH_SUCCESS_STATE
     case 'SET_NO_REHYDRATION':
-      return AUTH_SUCCESS_STATE
+      return NOT_LOGGED_IN_STATE
     
     // initial login
     case 'AUTH_SUCCESS':
