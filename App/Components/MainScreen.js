@@ -64,7 +64,7 @@ export class MainScreen extends Component {
     // initial state
     this.state = {
       assets: coins,
-      sparklines_duration: 14,
+      sparklines_duration: 30,
       period: "week",
       
       // use from props

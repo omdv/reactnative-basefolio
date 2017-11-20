@@ -155,8 +155,7 @@ function* historyPricesPoll(api, action, millis) {
 
 // called on PRICE_POLL_START
 export function* startPricePoll(api1, api2, action) {
-  while (true) {
-    const bgSpotPrice = yield fork(spotPricesPoll, api1, action, 30*1000)
+    const bgSpotPrice = yield fork(spotPricesPoll, api1, action, 10*1000)
     const bgHistPrice = yield fork(historyPricesPoll, api2, action, 60*1000)
     
     yield race([
@@ -165,7 +164,6 @@ export function* startPricePoll(api1, api2, action) {
     ])
     yield cancel(bgSpotPrice)
     yield cancel(bgHistPrice)
-  }
 }
 
 // one time refresh without delays

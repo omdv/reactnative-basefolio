@@ -113,7 +113,7 @@ export default class SummaryTable extends Component {
               <Group x={0+Metrics.baseMargin/2} y={0+Metrics.baseMargin}>
                 <Shape
                   d={graph.path}
-                  stroke={Colors.sparkline}
+                  stroke={isPositive ? Colors.positive : Colors.negative}
                   strokeWidth={0.5}
                 />
               </Group>

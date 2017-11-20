@@ -155,7 +155,6 @@ export function * refreshTokenOnce(authApi, action) {
 }
 
 export function * startCoinbasePoll(authApi, transactionsApi, action) {
-  while (true) {
     const bgToken = yield fork(refreshTokenPoll, authApi, action, 3949*1000)
     const bgTrans = yield fork(refreshTransactionsPoll, transactionsApi, action, 1800*1000)
     
@@ -165,7 +164,6 @@ export function * startCoinbasePoll(authApi, transactionsApi, action) {
     ])
     yield cancel(bgToken)
     yield cancel(bgTrans)
-  }
 }
 
 // called on accountsRequest
