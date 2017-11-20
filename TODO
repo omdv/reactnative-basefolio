@@ -1,9 +1,14 @@
 TODO:
 
-beta testing:
+OPEN issues
 - after long wait and rehydration logs out (MAJOR)
+- fix background color for nav icons when pressed
+- increase size of "back" buttons
 - graph controls are a bit slow
 - after login it shows "go back to Safari"
+
+CLOSED issues
+- font on summaryTable button decreases permanently (FIXED)
 - after restart/rehydration it returns to config screen (FIXED)
 - colors for graph? (FIXED)
 - graph control are tough to press first time (increase padding/margin) (FIXED)

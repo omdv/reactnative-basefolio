@@ -34,7 +34,7 @@ export default function * root () {
     takeLatest(StartupTypes.STARTUP, startup),
 
     // meta saga to ensure all data is pulled before login
-    takeLatest(StartupTypes.STARTUP, loginSaga),    
+    takeLatest(StartupTypes.STARTUP, loginSaga),
 
     // Accounts and transactions on request and/or login
     takeLatest(AuthTypes.ACCOUNTS_REQUEST, getCoinbaseDataOnce, coinWalletApi),

@@ -73,6 +73,7 @@ export default class SummaryTable extends Component {
   }
   
   flipButton () {
+    this.maxLength = 0
     this.returnIdx = (this.returnIdx + 1) % 3
     this.assignReturnValue()
   }
