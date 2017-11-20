@@ -13,7 +13,7 @@ export default StyleSheet.create({
   },
   rowText: {
     alignSelf: 'center',
-    color: Colors.snow,
+    color: 'black',
     textAlign: 'center',
     margin: 4,
     fontSize: Fonts.size.small

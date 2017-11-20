@@ -11,9 +11,10 @@
 *************************************************************/
 
 import { delay } from 'redux-saga'
-import { call, take, put, all, fork, race, select } from 'redux-saga/effects'
+import { call, take, put, all, fork, race, select, cancel, cancelled } from 'redux-saga/effects'
 import CryptoPricesActions, { CryptoPricesTypes, hasHistPrices, getHistPricesEnd, getHistPrices }  from '../Redux/CryptoPricesRedux'
 import { TransformHistPrices, MergeHistPrices} from '../Transforms/TransformHistPrices'
+import AuthActions, { AuthTypes } from '../Redux/AuthRedux'
 
 // Supported coins
 var coins = require('../Config/Coins')['coins']
@@ -131,25 +132,40 @@ function* spotPricesPoll(api, action, millis) {
   while (true) {
     yield race([
       call(pollCurrentPrices, api, action, millis),
-      take(CryptoPricesTypes.PRICE_POLL_STOP)
+      take(CryptoPricesTypes.PRICE_POLL_STOP),
+      take(AuthTypes.LOGOUT)
     ])
   }
 }
 
 // helper to define race
 function* historyPricesPoll(api, action, millis) {
-  while (true) {
-    yield race([
-      call(pollDailyHistPrices, api, action, millis),
-      take(CryptoPricesTypes.PRICE_POLL_STOP)
-    ])
+  try {
+    while (true) {
+      yield call(pollDailyHistPrices, api, action, millis)
+      // yield race([
+      //   call(pollDailyHistPrices, api, action, millis),
+      //   take(CryptoPricesTypes.PRICE_POLL_STOP),
+      //   take(AuthTypes.LOGOUT)
+      // ])
+    }
+  } finally {
   }
 }
 
 // called on PRICE_POLL_START
 export function* startPricePoll(api1, api2, action) {
-  yield fork(spotPricesPoll, api1, action, 30*1000)
-  yield fork(historyPricesPoll, api2, action, 60*1000)
+  while (true) {
+    const bgSpotPrice = yield fork(spotPricesPoll, api1, action, 30*1000)
+    const bgHistPrice = yield fork(historyPricesPoll, api2, action, 60*1000)
+    
+    yield race([
+      take(CryptoPricesTypes.PRICE_POLL_STOP),
+      take(AuthTypes.LOGOUT)
+    ])
+    yield cancel(bgSpotPrice)
+    yield cancel(bgHistPrice)
+  }
 }
 
 // one time refresh without delays

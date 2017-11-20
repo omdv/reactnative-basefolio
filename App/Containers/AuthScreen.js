@@ -105,7 +105,7 @@ class AuthScreen extends Component {
 
 const mapStateToProps = (state) => {
   return {
-    fetching: state.auth.init_fetching
+    fetching: state.auth.fetching
   }
 }
 

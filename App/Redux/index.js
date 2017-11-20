@@ -7,10 +7,8 @@ export default () => {
   const rootReducer = combineReducers({
     navigation: require('./NavigationRedux').reducer,
     appState: require('./AppStateRedux').reducer,
-    github: require('./GithubRedux').reducer,
     search: require('./SearchRedux').reducer,
     auth: require('./AuthRedux').reducer,
-    transactions: require('./TransactionsRedux').reducer,
     prices: require('./CryptoPricesRedux').reducer,
     positions: require('./PositionsRedux').reducer
   })

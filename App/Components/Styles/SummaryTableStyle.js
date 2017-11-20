@@ -14,6 +14,7 @@ export default StyleSheet.create({
     paddingHorizontal: Metrics.smallMargin,
     backgroundColor: Colors.almost_black,
     justifyContent: 'space-between',
+    alignItems: 'center',
     borderRadius: 5
   },
 	rowBoldLabel: {
@@ -21,13 +22,13 @@ export default StyleSheet.create({
     alignSelf: 'center',
     color: Colors.snow,
     textAlign: 'center',
-    margin: 4,
+    marginTop: 2,
   },
 	rowMuteLabel: {
     alignSelf: 'center',
-    color: Colors.charcoal,
+    color: Colors.ricePaper,
     textAlign: 'center',
-    margin: 4
+    marginTop: 2
   },
  	rowButtonLabel: {
     alignSelf: 'center',
@@ -38,7 +39,7 @@ export default StyleSheet.create({
   rowButtonContainer: {
     height: Metrics.rowHeight - Metrics.doubleBaseMargin,
     justifyContent: 'center',
-    marginLeft: 0,
+    // marginLeft: 0,
     marginVertical: Metrics.baseMargin,
     borderRadius: 5
   }

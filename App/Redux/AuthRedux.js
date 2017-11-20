@@ -28,7 +28,8 @@ export const INITIAL_STATE = Immutable({
   access_token: null,
   refresh_token: null,
   token_expiration: null,
-  init_fetching: false,
+  is_auth_valid: false,
+  fetching: false,
   accounts: null,
   transactions: null,
   error_refresh: false,
@@ -43,19 +44,24 @@ export const initialAuth = (state, { access_token, refresh_token, token_expirati
     access_token, refresh_token, token_expiration,
     accounts: null,
     transactions: null,
-    init_fetching: true
+    fetching: true
   })
 
-export const initialAuthSuccess = state => state.merge({init_fetching: false})
+export const initialAuthSuccess = state => state.merge({
+  is_auth_valid: true, fetching: false})
 
 // reducers to refresh access_token
+export const authRefreshRequest = state => {
+  return state.merge({ is_auth_valid: false, fetching: true })
+}
+
 export const authRefreshSuccess = (state, action) => {
   const { access_token, refresh_token, token_expiration } = action
-  return state.merge({ access_token, refresh_token, token_expiration })
+  return state.merge({ access_token, refresh_token, token_expiration, is_auth_valid: true, fetching: false})
 }
 
 export const authRefreshFailure = state => {
-  return state.merge({ error_refresh: true })
+  return state.merge({ error_refresh: true, is_auth_valid: false, fetching: false })
 }
 
 // reducers for transactions
@@ -66,16 +72,17 @@ export const accountsRequest = state => {
 export const accountsSuccess = (state, action) => {
   const { accounts, transactions } = action
   return state.merge({
-    fetching: false,
     error_accounts: false,
     accounts,
-    transactions
+    transactions,
+    fetching: true
   })
 }
 
 export const accountsFailure = state =>
   state.merge({
-    fetching: false, error_accounts: true,
+    error_accounts: true,
+    fetching: false
   })
 
 export const userDataSuccess = (state, action) => {
@@ -94,6 +101,7 @@ export const logout = (state) => INITIAL_STATE
 export const reducer = createReducer(INITIAL_STATE, {
   [Types.INIT_AUTH]: initialAuth,
   [Types.AUTH_SUCCESS]: initialAuthSuccess,
+  [Types.AUTH_REFRESH_REQUEST]: authRefreshRequest,  
   [Types.AUTH_REFRESH_SUCCESS]: authRefreshSuccess,
   [Types.AUTH_REFRESH_FAILURE]: authRefreshFailure,
   [Types.ACCOUNTS_REQUEST]: accountsRequest,
@@ -107,5 +115,7 @@ export const reducer = createReducer(INITIAL_STATE, {
 /* ------------- Selectors ------------- */
 
 // Is the current user logged in?
-export const isAuthed = (authState) => authState.refresh_token !== null
+export const isAuthed = (authState) => authState.is_auth_valid
+export const hasRefreshToken = (authState) => authState.refresh_token !== null
 export const hasTransactions = (authState) => authState.transactions !== null
+export const getTokenExpiration = (authState) => authState.token_expiration

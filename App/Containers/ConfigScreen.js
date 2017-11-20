@@ -21,24 +21,38 @@ class ConfigScreen extends Component {
     accounts: PropTypes.array,
     coinbaseLogout: PropTypes.func
   }
+
+  constructor(props) {
+    super(props)
+    this.logout = this.logout.bind(this)
+  }
+
+  logout () {
+    this.props.coinbaseLogout()
+    this.props.navigation.navigate('AuthScreen')
+  }
   
   render () {
     const { goBack } = this.props.navigation
-    const { coinbaseLogout } = this.props
     const { user_profile, accounts } = this.props
     const isAuthed = user_profile ? true : false
     return (
       <ScrollView style={styles.container}>
         <KeyboardAvoidingView behavior='position'>
           <View style={styles.header} >
-            <View style={{width: 50}}><Icon name='chevron-left' color={Colors.navigation} onPress={() => goBack()}/></View>
+            <View style={{width: 50}}>
+              <Icon name='chevron-left'
+                color={Colors.navigation}
+                backgroundColor={Colors.backgroundColor}
+                onPress={() => goBack()}/>
+            </View>
           </View>
           <View style={styles.content}>
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Coinbase</Text>
               <Text style={styles.sectionText}>Logged in as {isAuthed ? user_profile.name : null}</Text>
               <Text style={styles.sectionText}>Tracking {isAuthed ? accounts.length : null} wallets</Text>
-            <RoundedButton text="Logout" onPress={() => coinbaseLogout()}/>
+            <RoundedButton text="Logout" onPress={() => this.logout()}/>
             </View>
           </View>
         </KeyboardAvoidingView>

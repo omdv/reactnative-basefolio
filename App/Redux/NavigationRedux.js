@@ -4,9 +4,6 @@ import { PrimaryNav } from '../Navigation/AppNavigation'
 const { navigate, reset } = NavigationActions
 const { getStateForAction } = PrimaryNav.router
 
-const INITIAL_STATE = getStateForAction(
-  navigate({ routeName: 'LoadingScreen' })
-)
 const NOT_LOGGED_IN_STATE = getStateForAction(
   navigate({ routeName: 'AuthScreen'}))
 
@@ -30,18 +27,18 @@ const LOADING_SCREEN = getStateForAction(
  */
 // const navigateTo = routeName => () => navigate({ routeName })
 
-export function reducer (state = INITIAL_STATE, action) {
+export function reducer (state = LOADING_SCREEN, action) {
   let nextState
   switch (action.type) {
     // rehydration cases
     case 'SET_REHYDRATION_COMPLETE':
-      return AUTH_SUCCESS_STATE
+      return LOADING_SCREEN
     case 'SET_NO_REHYDRATION':
       return NOT_LOGGED_IN_STATE
     
     // initial login
     case 'AUTH_SUCCESS':
-      return AUTH_SUCCESS_STATE
+      return LOADING_SCREEN
     
       // failures to login - go to initial screen
     case 'AUTH_REFRESH_FAILURE':

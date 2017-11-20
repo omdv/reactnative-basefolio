@@ -1,20 +1,29 @@
-import { put, select } from 'redux-saga/effects'
+import { put, select, call } from 'redux-saga/effects'
 import AppStateActions from '../Redux/AppStateRedux'
 import { is } from 'ramda'
-import AuthActions, { isAuthed, hasTransactions } from '../Redux/AuthRedux'
+import AuthActions, { isAuthed, hasTransactions, hasRefreshToken, getTokenExpiration } from '../Redux/AuthRedux'
 import CryptoPricesActions, { hasHistPrices }  from '../Redux/CryptoPricesRedux'
 
 // exported to make available for tests
-export const selectAuthedStatus = (state) => isAuthed(state.auth)
-export const selectHasPrices = (state) => hasHistPrices(state.prices)
-export const selectHasTransactions = (state) => hasTransactions(state.auth)
+const selectAuthedStatus = (state) => isAuthed(state.auth)
+const selectTokenExpiration = (state) => getTokenExpiration(state.auth)
+const selectHasTransactions = (state) => hasTransactions(state.auth)
+const selectRefreshToken = (state) => hasRefreshToken(state.auth)
+const selectHasPrices = (state) => hasHistPrices(state.prices)
+
 
 // process STARTUP actions
 export function * startup (action) {
-  const hasRefreshToken = yield select(selectAuthedStatus)
+  const hasRefreshToken = yield select(selectRefreshToken)
   // refresh token and get all accounts data
   if (hasRefreshToken) {
-    yield put(AuthActions.authRefreshRequest())
+    // check if it has expired
+    const tokenExpiration = yield select(selectTokenExpiration)
+    // DEBUG:
+    // yield put(AuthActions.authRefreshRequest())
+    if ((tokenExpiration-600) < (new Date().getTime()/1000)) {
+      yield put(AuthActions.authRefreshRequest())
+    }
   }
 
   const hasPrices = yield select(selectHasPrices)

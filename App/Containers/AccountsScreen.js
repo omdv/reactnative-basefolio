@@ -8,12 +8,13 @@ import {
   Image,
   ScrollView, 
   TouchableOpacity} from 'react-native'
-
+  
 // components
 import SummaryTable from '../Components/SummaryTable'
 import SummarySheet from '../Components/SummarySheet'
 import ReturnsGraph from '../Components/ReturnsGraph'
 import PortfolioSummary from '../Components/PortfolioSummary'
+import Loading from '../Components/Loading'
 
 // react-native elements
 import { Icon } from 'react-native-elements'
@@ -36,7 +37,8 @@ var coins = require('../Config/Coins')['coins']
 
 class AccountsScreen extends Component {
   static propTypes = {
-    fetching: PropTypes.bool,
+    fetchin: PropTypes.bool,
+    fetching_token: PropTypes.bool,
     accounts: PropTypes.array,
     transactions: PropTypes.array,
     hist_prices: PropTypes.object,
@@ -64,7 +66,7 @@ class AccountsScreen extends Component {
     // initial state
     this.state = {
       assets: coins,
-      sparklines_duration: 14,
+      sparklines_duration: 30,
       period: "week",
       
       // use from props
@@ -127,45 +129,55 @@ class AccountsScreen extends Component {
 
   render () {
     const { financial_summary, assets, period } = this.state
-    const { refreshCurrentPrices, refreshAllPrices, fetching_current } = this.props
+    const { refreshCurrentPrices, refreshAllPrices, fetching_token, fetching } = this.props
     const isPositive = financial_summary.portfolio.gain_period > 0 ? true : false
-    return (
-      <ScrollView style={styles.container}>
-        <View style={styles.header} >
-          <View style={{width: 50}}><Icon name='settings' color={Colors.navigation} onPress={() => this.props.navigation.navigate('ConfigScreen')}/></View>
-          <View style={{width: 50}}>
-            <Icon name='refresh'
-              color={fetching_current ? Colors.navigation_inactive : Colors.navigation}
-              onPress={!fetching_current ? () => this.refreshAll(): () => null} />
-          </View> 
-        </View>
-        <View style={styles.content}>
-          <SummarySheet summary={financial_summary.portfolio} />
-          <View style={styles.graphWrapper}>
-            <ReturnsGraph
-              datum={financial_summary.returngraph.data}
-              yAccessor={d => d.gain}
-              width={Metrics.screenWidth}
-              height={Metrics.screenHeight/4}
-              isPositive={isPositive} />
+    if (fetching_token) {
+      return <Loading />
+    } else {
+      return (
+        <ScrollView style={styles.container}>
+          <View style={styles.header} >
+            <View style={{width: 50}}>
+              <Icon
+                name='settings'
+                color={Colors.navigation}
+                backgroundColor={Colors.backgroundColor}
+                onPress={() => this.props.navigation.navigate('ConfigScreen')}/></View>
+            <View style={{width: 50}}>
+              <Icon name='refresh'
+                color={fetching ? Colors.navigation_inactive : Colors.navigation}
+                onPress={!fetching ? () => this.refreshAll(): () => null}
+                backgroundColor={Colors.backgroundColor} />
+            </View> 
           </View>
-          <View style={styles.graphControl}>
-            {['week', 'month', 'quarter', 'year', 'all'].map((v,i) => (
-              <TouchableOpacity style={{marginHorizontal: 10}} key={i} onPress={() => this.updateReturnsPlotPeriod(v)}>
-                <Text style={v === period ? styles.graphControlTextActive : styles.graphControlText}>{v}</Text>
-              </TouchableOpacity>
-            ))
-            }
+          <View style={styles.content}>
+            <SummarySheet summary={financial_summary.portfolio} />
+            <View style={styles.graphWrapper}>
+              <ReturnsGraph
+                datum={financial_summary.returngraph.data}
+                yAccessor={d => d.gain}
+                width={Metrics.screenWidth}
+                height={Metrics.screenHeight/4}
+                isPositive={isPositive} />
+            </View>
+            <View style={styles.graphControl}>
+              {['week', 'month', 'quarter', 'year', 'all'].map((v,i) => (
+                <TouchableOpacity style={{marginHorizontal: 10}} key={i} onPress={() => this.updateReturnsPlotPeriod(v)}>
+                  <Text style={v === period ? styles.graphControlTextActive : styles.graphControlText}>{v}</Text>
+                </TouchableOpacity>
+              ))
+              }
+            </View>
+            <View style={styles.divider} />
+            <SummaryTable
+              summary={financial_summary.summaries}
+              sparkline={financial_summary.sparkline}
+              current_prices={financial_summary.current_prices}
+              navigation={this.props.navigation} />
           </View>
-          <View style={styles.divider} />
-          <SummaryTable
-            summary={financial_summary.summaries}
-            sparkline={financial_summary.sparkline}
-            current_prices={financial_summary.current_prices}
-            navigation={this.props.navigation} />
-        </View>
-      </ScrollView>
-    )
+        </ScrollView>
+      )
+    }
   }
 }
 
@@ -174,8 +186,7 @@ class AccountsScreen extends Component {
 
 const mapStateToProps = (state) => {
   return {
-    fetching: state.auth.fetching,
-    fetching_current: state.auth.fetching_current,
+    fetching_token: state.auth.fetching_new_token,
     accounts: state.auth.accounts,
     transactions: state.auth.transactions,
     hist_prices: state.prices.hist_prices,

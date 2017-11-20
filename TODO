@@ -1,23 +1,23 @@
 TODO:
 
-features:
+beta testing:
+- after long wait and rehydration logs out (MAJOR)
+- graph controls are a bit slow
+- after login it shows "go back to Safari"
+- after restart/rehydration it returns to config screen (FIXED)
+- colors for graph? (FIXED)
+- graph control are tough to press first time (increase padding/margin) (FIXED)
+- in summary table the text margins are not consistent with buttons (FIXED)
+- after logout gives an error (FIXED)
+
+features list:
 - (DONE) prices re-download
 - (DONE) logout
-- add functionality to add positions
-- returns over different periods
-- add totals to positions screen
+- (DONE but disabled for now) add functionality to add positions
+- (DONE) returns over different periods
+- (DONE) add totals to positions screen
 
-- request historical prices only for dates when orders are active - depends on whether I'll allow to add transactions manually later?
-REMOVE - Add positions acquired before coinbase, i.e. when coins are send to Coinbase
-- acitivity indicators
-- different failures when requesting API
-- disable refresh button when fetching
-- when refreshing prices it launches an infinite loop
-- if initial prices fail but accounts go through - the activity indicator keeps going
 
 PRIOR TO RELEASE:
 - Clean AccountsRedux and Sagas - redundant
 - Remove if (hist_prices) in Financial Functions
-
-General:
-- Define features and screens clearly and start working on MVP

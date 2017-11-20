@@ -11,7 +11,7 @@
 *************************************************************/
 
 import { delay } from 'redux-saga'
-import { call, put, all, select, fork, race, take } from 'redux-saga/effects'
+import { call, put, all, select, fork, race, take, cancel, cancelled } from 'redux-saga/effects'
 import AuthActions, { AuthTypes } from '../Redux/AuthRedux'
 import CryptoPricesActions, { CryptoPricesTypes }  from '../Redux/CryptoPricesRedux'
 import { TransformTransactionsForCoin, TransformAllTransactions } from '../Transforms/TransformTransactions'
@@ -25,7 +25,7 @@ function * getUserData (api, action) {
   if (response.ok) {
     yield put(AuthActions.userDataSuccess(response.data.data))
   } else {
-    yield put(AuthActions.authFailure())
+    yield put(AuthActions.accountsFailure())
   }
 }
 
@@ -122,24 +122,20 @@ function * getCoinbaseData (api, action, millis) {
 
 // helper to define race
 function* refreshTokenPoll(api, action, millis) {
-  while (true) {
-    yield race([
-      call(getNewToken, api, action, millis),
-      take(AuthTypes.ACCOUNTS_POLL_STOP),
-      take(AuthTypes.LOGOUT)
-    ])
-  }
+  try {
+    while (true) {
+      yield call(getNewToken, api, action, millis)
+    }
+  } finally {}
 }
 
 // helper to define race
 function* refreshTransactionsPoll(api, action, millis) {
-  while (true) {
-    yield race([
-      call(getCoinbaseData, api, action, millis),
-      take(AuthTypes.ACCOUNTS_POLL_STOP),
-      take(AuthTypes.LOGOUT)
-    ])
-  }
+  try {
+    while (true) {
+      yield call(getCoinbaseData, api, action, millis)
+    }
+  } finally {}
 }
 
 // saga to make sure we get all information prior to successful auth
@@ -154,9 +150,22 @@ export function * loginSaga(action) {
   }
 }
 
+export function * refreshTokenOnce(authApi, action) {
+  yield call(getNewToken, authApi, 0)
+}
+
 export function * startCoinbasePoll(authApi, transactionsApi, action) {
-  yield fork(refreshTokenPoll, authApi, action, 3949*1000)
-  yield fork(refreshTransactionsPoll, transactionsApi, action, 1800*1000)
+  while (true) {
+    const bgToken = yield fork(refreshTokenPoll, authApi, action, 3949*1000)
+    const bgTrans = yield fork(refreshTransactionsPoll, transactionsApi, action, 1800*1000)
+    
+    yield race([
+      take(AuthTypes.ACCOUNTS_POLL_STOP),
+      take(AuthTypes.LOGOUT)
+    ])
+    yield cancel(bgToken)
+    yield cancel(bgTrans)
+  }
 }
 
 // called on accountsRequest

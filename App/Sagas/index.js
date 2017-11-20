@@ -16,7 +16,7 @@ import { PositionsTypes } from '../Redux/PositionsRedux'
 
 /* ------------- Sagas ------------- */
 import { startup } from './StartupSagas'
-import { getCoinbaseDataOnce, loginSaga, startCoinbasePoll } from './AuthSagas'
+import { getCoinbaseDataOnce, loginSaga, startCoinbasePoll, refreshTokenOnce } from './AuthSagas'
 import { getAllPricesOnce, getCurrentPricesOnce, startPricePoll } from './CryptoPricesSagas'
 import { updateTransaction, addTransaction } from './PositionsSagas'
 
@@ -41,6 +41,7 @@ export default function * root () {
 
     // Starting polls for accounts and access token
     takeLatest(AuthTypes.ACCOUNTS_POLL_START, startCoinbasePoll, coinAuthApi, coinWalletApi),
+    takeLatest(AuthTypes.AUTH_REFRESH_REQUEST, refreshTokenOnce, coinAuthApi),
 
     // Prices - poll, on request and/or login
     takeLatest(CryptoPricesTypes.CURR_PRICES_REQUEST, getCurrentPricesOnce, pricesApi),

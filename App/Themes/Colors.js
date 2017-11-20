@@ -22,7 +22,7 @@ const colors = {
   border: '#483F53',
   banner: '#5F3E63',
   text: '#E0D7E5',
-  positive: '#006837',
+  positive: '#00b45a',
   negative: '#d73027',
   graph: '#e73536',
   sparkline: 'rgba(255,255,255, 0.75)',

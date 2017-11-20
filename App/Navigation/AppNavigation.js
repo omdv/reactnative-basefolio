@@ -1,23 +1,22 @@
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { StackNavigator, addNavigationHelpers } from 'react-navigation'
+import LoadingScreen from '../Containers/LoadingScreen'
 import OnePositionScreen from '../Containers/OnePositionScreen'
 import ConfigScreen from '../Containers/ConfigScreen'
 import PositionsScreen from '../Containers/PositionsScreen'
 import AccountsScreen from '../Containers/AccountsScreen'
 import AuthScreen from '../Containers/AuthScreen'
-import LoadingScreen from '../Containers/LoadingScreen'
 
 import styles from './Styles/NavigationStyles'
 
 // Manifest of possible screens
 export const PrimaryNav = StackNavigator({
-  OnePositionScreen: { screen: OnePositionScreen },
+  LoadingScreen: { screen: LoadingScreen },
   ConfigScreen: { screen: ConfigScreen },
   PositionsScreen: { screen: PositionsScreen },
   AccountsScreen: { screen: AccountsScreen },
   AuthScreen: { screen: AuthScreen },
-  LoadingScreen: { screen: LoadingScreen },
 }, {
   // Default config for all screens
   headerMode: 'none',

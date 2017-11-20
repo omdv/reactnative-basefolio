@@ -104,13 +104,13 @@ export default class SummaryTable extends Component {
 
     return (
       <TouchableOpacity style={styles.rowContainer} onPress={() => this.props.navigation.navigate('PositionsScreen', {coin: item.coin})}>
-          <View style={{flexDirection: 'column', width: Math.floor(Metrics.screenWidth/3)-Metrics.doubleBaseMargin}}>
-            <Text style={styles.rowBoldLabel}>{item.coin}</Text>
-            <Text style={styles.rowMuteLabel}>{item.amount.toFixed(8)}</Text>
+          <View style={{flexDirection: 'column', width: Math.floor(Metrics.screenWidth/3)-Metrics.doubleBaseMargin, height: Metrics.rowHeight - Metrics.doubleBaseMargin, alignItems: 'center', justifyContent: 'center'}}>
+            <View><Text style={styles.rowBoldLabel}>{item.coin}</Text></View>
+            <View><Text style={styles.rowMuteLabel}>{item.amount.toFixed(8)}</Text></View>
           </View>
-          <View style={{flexDirection: 'column'}}>
+          <View style={{flexDirection: 'column', marginHorizontal: 0}}>
             <Surface width={graphWidth + Metrics.doubleBaseMargin} height={graphHeight+Metrics.doubleBaseMargin}>
-              <Group x={0+Metrics.baseMargin} y={0+Metrics.baseMargin}>
+              <Group x={0+Metrics.baseMargin/2} y={0+Metrics.baseMargin}>
                 <Shape
                   d={graph.path}
                   stroke={Colors.sparkline}
