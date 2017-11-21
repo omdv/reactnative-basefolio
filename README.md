@@ -9,10 +9,13 @@ Features:
 - Robinhood-like UI
 
 Main screen:
-![main screen](https://github.com/omdv/react-native-cryptofolio/blob/master/screenshots/main_screen.png "main screen")
+
+<img src="https://github.com/omdv/react-native-cryptofolio/blob/master/screenshots/main_screen.png" width="40%">
 
 Example of open positions:
-![positions screen](https://github.com/omdv/react-native-cryptofolio/blob/master/screenshots/open_positions.png "positions screen")
+
+<img src="https://github.com/omdv/react-native-cryptofolio/blob/master/screenshots/open_positions.png" width="40%">
  
 Example of closed positions:
-![positions screen](https://github.com/omdv/react-native-cryptofolio/blob/master/screenshots/positions.png "positions screen")
+
+<img src="https://github.com/omdv/react-native-cryptofolio/blob/master/screenshots/positions.png" width="40%">
