@@ -25,21 +25,21 @@ const create = (baseURL = 'https://api.coinbase.com') => {
   //
 
   const getUser = (token) => api.get('/v2/user', {},
-    {headers: {'Authorization': 'Bearer '+ token }})
+    {headers: {'Authorization': 'Bearer '+ token, 'CB-VERSION': '2017-06-16' }})
 
   // get accounts
   const getAccounts = (token) => api.get('/v2/accounts', {},
-    {headers: {'Authorization': 'Bearer '+ token }})
+    {headers: {'Authorization': 'Bearer '+ token, 'CB-VERSION': '2017-06-16'}})
 
   // get transactions
   const getTransactions = (token, account) => api.get('/v2/accounts/'+account+'/transactions',
-    {},{headers: {'Authorization': 'Bearer '+ token }})
+    {},{headers: {'Authorization': 'Bearer '+ token, 'CB-VERSION': '2017-06-16' }})
 
   const getTransactionsNextPage = (token, next_uri) => api.get(next_uri,
-    {}, {headers: {'Authorization': 'Bearer '+ token }})
+    {}, {headers: {'Authorization': 'Bearer '+ token, 'CB-VERSION': '2017-06-16' }})
 
   const getSpotPrice = (token, coin) => api.get('/v2/prices/'+coin+'-USD/buy',
-    {}, {headers: {'Authorization': 'Bearer '+ token }})
+    {}, {headers: {'Authorization': 'Bearer '+ token, 'CB-VERSION': '2017-06-16' }})
 
   // ------
   // STEP 3

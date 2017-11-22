@@ -168,6 +168,5 @@ export function * startCoinbasePoll(authApi, transactionsApi, action) {
 
 // called on accountsRequest
 export function * getCoinbaseDataOnce(transactionsApi, action) {
-  yield call(getUserData, transactionsApi, action)
   yield call(getCoinbaseData, transactionsApi, action, 0)
 }

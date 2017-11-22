@@ -13,7 +13,7 @@ export default StyleSheet.create({
   },
   rowText: {
     alignSelf: 'center',
-    color: 'black',
+    color: Colors.background,
     textAlign: 'center',
     margin: 4,
     fontSize: Fonts.size.small

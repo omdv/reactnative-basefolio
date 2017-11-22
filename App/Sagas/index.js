@@ -2,7 +2,6 @@ import { takeLatest } from 'redux-saga/effects'
 import DebugConfig from '../Config/DebugConfig'
 
 /* ------------- API ------------- */
-import API from '../Services/Api'
 import CoinbaseWalletAPI from '../Services/CoinbaseWalletApi'
 import CoinbaseAuthAPI from '../Services/CoinbaseAuthApi'
 import FixtureAPI from '../Services/FixtureApi'
@@ -22,9 +21,9 @@ import { updateTransaction, addTransaction } from './PositionsSagas'
 
 
 /* ------------- API ------------- */
-const coinWalletApi = false ? FixtureAPI : CoinbaseWalletAPI.create()
-const coinAuthApi = false ? FixtureAPI : CoinbaseAuthAPI.create()
-const pricesApi = false ? FixtureAPI : CryptoPricesAPI.create()
+const coinWalletApi = CoinbaseWalletAPI.create()
+const coinAuthApi = CoinbaseAuthAPI.create()
+const pricesApi = CryptoPricesAPI.create()
 
 
 /* ------------- Connect Types To Sagas ------------- */

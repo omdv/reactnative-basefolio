@@ -54,7 +54,8 @@ class PositionsScreen extends Component {
     return (
       <ScrollView style={styles.container}>
         <View style={styles.header} >
-          <View style={{width: 50}}><Icon name='chevron-left' color={Colors.navigation} onPress={() => goBack()}/></View>
+          <View style={{width: 50}}>
+            <Icon name='chevron-left' color={Colors.navigation} onPress={() => goBack()} underlayColor={Colors.background}/></View>
           <View><Text style={styles.titleText}>Positions for {coin}</Text></View>
           <View style={{width: 50}}></View> 
         </View>

@@ -511,20 +511,24 @@ export function getAnalysis(assets, transactions, accounts, spot_prices, hist_pr
     // calculate delta in returns over period
     processed = Object.keys(fh[0]).map(e => { return {gain: fh[fh.length-1][e].gain-fh[0][e].gain, cost_basis:fh[fh.length-1][e].cost_basis, coin:e}})
     
-    // merge with summaries
+    // prepare for merging
     summaries = returns.summaries
     portfolio = returns.portfolio
+
+    summaries = _.zipObject(summaries.map(a => a.coin), summaries)
+    processed = _.zipObject(processed.map(a => a.coin), processed)
     
-    // assign to summaries
-    for (i=0; i<summaries.length; i++) {
+    // merge with summaries
+    let d = true
+    for (i in summaries) {
       summaries[i]['gain_period'] = processed[i].gain
       summaries[i]['return_period'] = processed[i].gain/processed[i].cost_basis*100
     }
-    returns.summaries = summaries
+    returns.summaries = _.values(summaries)
 
     // assign to portfolio
-    portfolio.gain_period = processed[processed.length-1].gain
-    portfolio.return_period = processed[processed.length-1].gain/processed[processed.length-1].cost_basis*100
+    portfolio.gain_period = processed["portfolio"].gain
+    portfolio.return_period = processed["portfolio"].gain/processed["portfolio"].cost_basis*100
     returns.portfolio = portfolio
 
   } catch(err) {}

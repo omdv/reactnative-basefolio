@@ -5,7 +5,6 @@ import LoadingScreen from '../Containers/LoadingScreen'
 import OnePositionScreen from '../Containers/OnePositionScreen'
 import ConfigScreen from '../Containers/ConfigScreen'
 import PositionsScreen from '../Containers/PositionsScreen'
-import AccountsScreen from '../Containers/AccountsScreen'
 import AuthScreen from '../Containers/AuthScreen'
 
 import styles from './Styles/NavigationStyles'
@@ -15,7 +14,6 @@ export const PrimaryNav = StackNavigator({
   LoadingScreen: { screen: LoadingScreen },
   ConfigScreen: { screen: ConfigScreen },
   PositionsScreen: { screen: PositionsScreen },
-  AccountsScreen: { screen: AccountsScreen },
   AuthScreen: { screen: AuthScreen },
 }, {
   // Default config for all screens

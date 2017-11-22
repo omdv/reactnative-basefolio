@@ -51,14 +51,15 @@ export class MainScreen extends Component {
   constructor (props) {
     super(props)
     let { accounts, transactions, current_prices, hist_prices } = props
-    // defaults for testing
-    let default_current_prices = {
-      'BTC': {'USD': 4800},
-      'ETH': {'USD': 310},
-      'LTC': {'USD': 65}
-    }
-    let default_accounts = require('../Fixtures/accounts.json')
-    let default_transactions = require('../Fixtures/transactions_testing.json')
+    // DEBUG:
+    // // defaults for testing
+    // let default_current_prices = {
+    //   'BTC': {'USD': 4800},
+    //   'ETH': {'USD': 310},
+    //   'LTC': {'USD': 65}
+    // }
+    // let default_accounts = require('../Fixtures/accounts.json')
+    // let default_transactions = require('../Fixtures/transactions_testing.json')
     let default_financial_summary = require('../Fixtures/default_summary.json')
     
     // initial state
@@ -68,9 +69,15 @@ export class MainScreen extends Component {
       period: "week",
       
       // use from props
-      accounts: accounts ? accounts : default_accounts,
-      transactions: transactions ? transactions : default_transactions,
-      current_prices: current_prices ? current_prices : default_current_prices,
+      // accounts: accounts ? accounts : default_accounts,
+      // transactions: transactions ? transactions : default_transactions,
+      // current_prices: current_prices ? current_prices : default_current_prices,
+      // hist_prices: hist_prices,
+      // financial_summary: default_financial_summary
+
+      accounts: accounts,
+      transactions: transactions,
+      current_prices: current_prices,
       hist_prices: hist_prices,
       financial_summary: default_financial_summary
     }
@@ -136,13 +143,13 @@ export class MainScreen extends Component {
             <Icon
               name='settings'
               color={Colors.navigation}
-              backgroundColor={Colors.backgroundColor}
-              onPress={() => this.props.navigation.navigate('ConfigScreen')}/></View>
+              onPress={() => this.props.navigation.navigate('ConfigScreen')}
+              underlayColor={Colors.background}/></View>
           <View style={{width: 50}}>
             <Icon name='refresh'
               color={fetching_current ? Colors.navigation_inactive : Colors.navigation}
               onPress={!fetching_current ? () => this.refreshAll(): () => null}
-              backgroundColor={Colors.backgroundColor} />
+              underlayColor={Colors.background}/>
           </View> 
         </View>
         <View style={styles.content}>

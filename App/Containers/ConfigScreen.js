@@ -43,7 +43,7 @@ class ConfigScreen extends Component {
             <View style={{width: 50}}>
               <Icon name='chevron-left'
                 color={Colors.navigation}
-                backgroundColor={Colors.backgroundColor}
+                underlayColor={Colors.background}
                 onPress={() => goBack()}/>
             </View>
           </View>
