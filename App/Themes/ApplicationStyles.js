@@ -36,6 +36,14 @@ const ApplicationStyles = {
       marginVertical: Metrics.smallMargin,
       textAlign: 'center'
     },
+    sectionTextLink: {
+      ...Fonts.style.normal,
+      paddingVertical: Metrics.smallMargin,
+      color: Colors.snow,
+      marginVertical: Metrics.smallMargin,
+      textAlign: 'center',
+      textDecorationLine: 'underline'
+    },
     sectionTitle: {
       ...Fonts.style.h4,
       color: Colors.snow,
@@ -60,7 +68,20 @@ const ApplicationStyles = {
     },
     content: {
       flex: 1,
-    }
+    },
+    positionsRowContainer: {
+      borderRadius: 5,
+      marginVertical: Metrics.baseMargin,
+      marginHorizontal: Metrics.doubleBaseMargin,
+      backgroundColor: Colors.background
+    },
+    positionsRowText: {
+      alignSelf: 'center',
+      color: Colors.background,
+      textAlign: 'center',
+      margin: 3,
+      fontSize: Fonts.size.small
+    },
   },
   darkLabelContainer: {
     padding: Metrics.smallMargin,
@@ -90,7 +111,10 @@ const ApplicationStyles = {
     borderColor: Colors.ember,
     alignItems: 'center',
     textAlign: 'center'
-  }
+  },
+  formatValues: '$0.00a',
+  formatPercent: '0.00a%',
+  formatPrices: '$0.000a'
 }
 
 export default ApplicationStyles

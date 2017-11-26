@@ -248,12 +248,13 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                 'type': 'buy',
                 'amount': order.amount,
                 'coin': order.coin,
+                'source': order.source,
                 'price': order.price,
                 'date': order.date,
                 'cost_basis': order.cost_basis,
                 'current_value': current_value,
                 'gain': gain,
-                'return': gain / order.cost_basis * 100,
+                'return': gain / order.cost_basis,
                 'idx': open_pos_idx,
                 'id': order.id
               }
@@ -281,6 +282,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                 'date': order.date,
                 'idx': closed_pos_idx,
                 'closed_positions': [],
+                'source': order.source,
                 'sell_value': Math.abs(order.amount) * order.price,
                 'id': order.id              
               }
@@ -316,7 +318,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                     'cost_basis': open_pos.cost_basis,
                     'current_value': current_value,
                     'gain': gain,
-                    'return': gain/open_pos.cost_basis * 100,
+                    'return': gain/open_pos.cost_basis,
                   }
                   // update counters
                   sold_cost_basis -= open_pos.cost_basis
@@ -338,7 +340,8 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                     'cost_basis': cost_basis,
                     'current_value': current_value,
                     'gain': gain,
-                    'return': gain/cost_basis * 100,
+                    'return': gain/cost_basis,
+                    'source': open_pos.source
                   }
                   // update current closed position and counters
                   sold_cost_basis -= cost_basis
@@ -361,9 +364,10 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                     'cost_basis': cost_basis,
                     'current_value': current_value,
                     'gain': gain,
-                    'return': gain / cost_basis * 100,
+                    'return': gain / cost_basis,
                     'idx': open_pos_idx,
-                    'id': open_pos.id
+                    'id': open_pos.id,
+                    'source': open_pos.source
                   }
                   open_positions.push(pos)
                   open_pos_idx += 1
@@ -374,7 +378,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
               // update the current closed position and push it to array
               closed['cost_basis'] = Math.abs(sold_cost_basis)
               closed['gain'] = closed['sell_value'] - closed['cost_basis']
-              closed['return'] = closed['gain'] / closed['cost_basis'] * 100
+              closed['return'] = closed['gain'] / closed['cost_basis']
               closed_positions.push(closed)
               closed_pos_idx += 1
               
@@ -392,7 +396,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
           ptf[v].current_value = ptf[v].amount * date[v].close
           ptf[v].open_gain = ptf[v].current_value - ptf[v].cost_basis
           ptf[v].gain = ptf[v].open_gain + ptf[v].closed_gain
-          ptf[v].return = ptf[v].gain / ptf[v].cost_basis * 100
+          ptf[v].return = ptf[v].gain / ptf[v].cost_basis
           ptf[v].price = date[v].close
         })
 
@@ -405,7 +409,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
           return k !== "portfolio" ? res+v.closed_gain : res }, 0)
         ptf["portfolio"].open_gain = ptf["portfolio"].current_value - ptf["portfolio"].cost_basis
         ptf["portfolio"].gain = ptf["portfolio"].open_gain + ptf["portfolio"].closed_gain
-        ptf["portfolio"].return = ptf["portfolio"].gain / ptf["portfolio"].cost_basis * 100
+        ptf["portfolio"].return = ptf["portfolio"].gain / ptf["portfolio"].cost_basis
 
         // add time and date
         ptf["portfolio"].time = date.BTC.time
@@ -522,13 +526,13 @@ export function getAnalysis(assets, transactions, accounts, spot_prices, hist_pr
     let d = true
     for (i in summaries) {
       summaries[i]['gain_period'] = processed[i].gain
-      summaries[i]['return_period'] = processed[i].gain/processed[i].cost_basis*100
+      summaries[i]['return_period'] = processed[i].gain/processed[i].cost_basis
     }
     returns.summaries = _.values(summaries)
 
     // assign to portfolio
     portfolio.gain_period = processed["portfolio"].gain
-    portfolio.return_period = processed["portfolio"].gain/processed["portfolio"].cost_basis*100
+    portfolio.return_period = processed["portfolio"].gain/processed["portfolio"].cost_basis
     returns.portfolio = portfolio
 
   } catch(err) {}

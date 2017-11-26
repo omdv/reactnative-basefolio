@@ -6,24 +6,28 @@ import CoinbaseWalletAPI from '../Services/CoinbaseWalletApi'
 import CoinbaseAuthAPI from '../Services/CoinbaseAuthApi'
 import FixtureAPI from '../Services/FixtureApi'
 import CryptoPricesAPI from '../Services/CryptoPricesApi'
+import GdaxAPI from '../Services/GDAXApi'
 
 /* ------------- Types ------------- */
 import { StartupTypes } from '../Redux/StartupRedux'
 import { AuthTypes } from '../Redux/AuthRedux'
 import { CryptoPricesTypes } from '../Redux/CryptoPricesRedux'
 import { PositionsTypes } from '../Redux/PositionsRedux'
+import { GdaxTypes } from '../Redux/GdaxRedux'
 
 /* ------------- Sagas ------------- */
 import { startup } from './StartupSagas'
-import { getCoinbaseDataOnce, loginSaga, startCoinbasePoll, refreshTokenOnce } from './AuthSagas'
+import { getAllTransactionsOnce, loginSaga, startTransactionsPoll, refreshTokenOnce } from './AuthSagas'
 import { getAllPricesOnce, getCurrentPricesOnce, startPricePoll } from './CryptoPricesSagas'
 import { updateTransaction, addTransaction } from './PositionsSagas'
+import { getGDAXOrders } from './GdaxSagas'
 
 
 /* ------------- API ------------- */
-const coinWalletApi = CoinbaseWalletAPI.create()
-const coinAuthApi = CoinbaseAuthAPI.create()
-const pricesApi = CryptoPricesAPI.create()
+const coinWalletApi = false ? FixtureAPI : CoinbaseWalletAPI.create()
+const coinAuthApi = false ? FixtureAPI : CoinbaseAuthAPI.create()
+const pricesApi = false ? FixtureAPI : CryptoPricesAPI.create()
+const gdaxApi = false ? FixtureAPI : GdaxAPI.create()
 
 
 /* ------------- Connect Types To Sagas ------------- */
@@ -36,11 +40,11 @@ export default function * root () {
     takeLatest(StartupTypes.STARTUP, loginSaga),
 
     // Accounts and transactions on request and/or login
-    takeLatest(AuthTypes.ACCOUNTS_REQUEST, getCoinbaseDataOnce, coinWalletApi),
+    takeLatest(AuthTypes.ACCOUNTS_REQUEST, getAllTransactionsOnce, coinWalletApi, gdaxApi),
 
-    // Starting polls for accounts and access token
-    takeLatest(AuthTypes.ACCOUNTS_POLL_START, startCoinbasePoll, coinAuthApi, coinWalletApi),
-    takeLatest(AuthTypes.AUTH_REFRESH_REQUEST, refreshTokenOnce, coinAuthApi),
+    // Starting polls for access token and transactions
+    takeLatest(AuthTypes.ACCOUNTS_POLL_START, startTransactionsPoll, coinAuthApi, coinWalletApi, gdaxApi),
+    takeLatest(AuthTypes.AUTH_REFRESH_REQUEST, refreshTokenOnce, coinAuthApi, coinWalletApi),
 
     // Prices - poll, on request and/or login
     takeLatest(CryptoPricesTypes.CURR_PRICES_REQUEST, getCurrentPricesOnce, pricesApi),
@@ -49,6 +53,6 @@ export default function * root () {
 
     // Transactions handling
     takeLatest(PositionsTypes.ONE_POSITION_UPDATE, updateTransaction),
-    takeLatest(PositionsTypes.ONE_POSITION_ADD, addTransaction)
+    takeLatest(PositionsTypes.ONE_POSITION_ADD, addTransaction),
   ]
 }

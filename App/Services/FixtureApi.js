@@ -112,5 +112,12 @@ export default {
       ok: true,
       data: data
     }
+  },
+  getFills: () => {
+    data = require('../Fixtures/fillsGDAX.json')
+    return {
+      ok: true,
+      data: data
+    }
   }
 }

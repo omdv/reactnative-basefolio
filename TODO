@@ -1,12 +1,14 @@
 TODO:
 
 OPEN issues
+- add pagination to GDAX API (MAJOR)
 - fix background color for nav icons when pressed
-- increase size of "back" buttons
 - graph controls are a bit slow
 - after login it shows "go back to Safari"
 
 CLOSED issues
+- improve font in summary table when amount is too large (FIXED)
+- increase size of "back" buttons (FIXED)
 - after long wait and rehydration logs out (MAJOR) (FIXED)
 - font on summaryTable button decreases permanently (FIXED)
 - after restart/rehydration it returns to config screen (FIXED)

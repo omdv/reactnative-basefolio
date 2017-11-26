@@ -2,7 +2,11 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native'
 import styles from './Styles/ClosedPositionCardStyle'
-import { Colors } from '../Themes'
+import { ApplicationStyles, Metrics, Colors } from '../Themes/index';
+// output
+var numeral = require('numeral')
+// svg
+import SvgUri from 'react-native-svg-uri'
 
 export default class ClosedPositionCard extends Component {
   // Prop type warnings
@@ -18,9 +22,9 @@ export default class ClosedPositionCard extends Component {
     const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit'}
     return (
         <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
-          <Text style={styles.rowText}>{item.amount.toFixed(8)}</Text>
-          <Text style={styles.rowText}>bought @ {item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
-          <Text style={styles.rowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.date))}</Text>          
+          <Text style={styles.positionsRowText}>{item.amount.toFixed(8)}</Text>
+          <Text style={styles.positionsRowText}>bought @ {item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
+          <Text style={styles.positionsRowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.date))}</Text>          
         </View>
     )
   }
@@ -30,27 +34,44 @@ export default class ClosedPositionCard extends Component {
     const isPositive = item.gain > 0 ? 1 : 0
     const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit'}    
     return (
-      <View style={[styles.rowContainer, {backgroundColor: isPositive ? Colors.positive: Colors.negative}]}>
-        <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
-          <Text style={styles.rowText}>SELL: {item.amount.toFixed(8)}</Text>
-          <Text style={styles.rowText}>@ {item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
-          <Text style={styles.rowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.date))}</Text>
+      <View style={[styles.positionsRowContainer, {backgroundColor: isPositive ? Colors.positive: Colors.negative}]}>
+        {/* HACK: dynamic file naming does not work, margin adjusted */}
+        <View style={{justifyContent: 'center', marginLeft: -10}}>
+          {(item.source === "Coinbase") && <SvgUri
+            style={{paddingVertical: 3}}
+            width={Metrics.screenWidth-Metrics.doubleBaseMargin}
+            height={Metrics.icons.tiny}
+            source={require("../Images/coinbase.svg")}
+            fill={Colors.background}
+          />}
+          {(item.source === "GDAX") && <SvgUri
+            style={{paddingVertical: 3}}
+            width={Metrics.screenWidth-Metrics.doubleBaseMargin}
+            height={Metrics.icons.tiny}
+            source={require("../Images/gdax.svg")}
+            fill={Colors.background}
+          />}
         </View>
-        <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
-          <Text style={styles.rowText}>COST: {item.cost_basis.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
-          <Text style={styles.rowText}>P/L: {item.gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} ({item.return.toFixed(2)}%)</Text>
+        <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>
+          <Text style={styles.positionsRowText}>SELL: {item.amount.toFixed(8)}</Text>
+          <Text style={styles.positionsRowText}>@ {item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
+          <Text style={styles.positionsRowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.date))}</Text>
+        </View>
+        <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>
+          <Text style={styles.positionsRowText}>COST: {numeral(item.cost_basis).format(ApplicationStyles.formatValues)}</Text>
+          <Text style={styles.positionsRowText}>{isPositive ? "+":""}{numeral(item.gain).format(ApplicationStyles.formatValues)} ({numeral(item.return).format(ApplicationStyles.formatPercent)})</Text>
         </View>
         <View style={styles.divider}></View>
         <View style={{alignItems: 'center'}}>
-          <Text style={styles.rowText}>Closed the following positions</Text>
+          <Text style={styles.positionsRowText}>Closed positions</Text>
         </View>
         <FlatList
             data={item.closed_positions}
             renderItem={this.renderClosedPositions}
             keyExtractor={(item, index) => index}
-            ListEmptyComponent={() => <Text style={styles.rowText}> There were no coins to sell </Text>}
+            ListEmptyComponent={() => <Text style={styles.positionsRowText}> There were no coins to sell </Text>}
           />
-        {item.oversold && <Text style={styles.rowText}>There were not enough coins for full order!</Text>}
+        {item.oversold && <Text style={styles.positionsRowText}>There were not enough coins for full order!</Text>}
       </View>
     )
   }

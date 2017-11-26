@@ -41,9 +41,47 @@ export function TransformAllTransactions(trans) {
     return trans
 }
 
+export function TransformGDAXOrders(trans) {
+    // flatten and convert to numeric
+    trans = trans.data
+
+    trans = trans.map(e => { return {
+        coin: e.product_id.split("-")[0],
+        fiat: e.product_id.split("-")[1],
+        cost_basis: Number(e.price) * Number(e.size) * (e.side === "sell" ? -1 : 1),
+        price: Number(e.price),
+        source: "GDAX",
+        fee: e.fee,
+        time: Date.parse(e.created_at),
+        date: dateToYMD(Date.parse(e.created_at)),
+        type: e.side,
+        amount: Number(e.size) * (e.side === "sell" ? -1 : 1),
+        id: e.trade_id,
+        settled: e.settled
+    }})
+
+    // remove unsettled transactions
+    trans = _.filter(trans, v => (v.settled))
+
+    // filter only supported coins
+    trans = _.filter(trans, v => (coins.includes(v.coin)))
+
+    // filter only fiat purchases
+    // TODO: add cross crypto exchanges
+    trans = _.filter(trans, v => (v.fiat === "USD"))
+
+    return trans
+}
+
 export function UpdateTransaction(trans, transactions) {
     trans.time = new Date(trans.date).getTime()
     transactions = _.filter(transactions, v => (v.id !== trans.id))
     transactions.push(trans)
     return transactions
+}
+
+export function UpdateTransactionsBySource(source, old_transactions, new_transactions) {
+    old_transactions = _.filter(old_transactions, v => (v.source !== source))
+    old_transactions = old_transactions.concat(new_transactions)
+    return old_transactions
 }

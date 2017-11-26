@@ -19,6 +19,7 @@ export function * startup (action) {
   if (hasRefreshToken) {
     // check if it has expired
     const tokenExpiration = yield select(selectTokenExpiration)
+    
     // DEBUG:
     // yield put(AuthActions.authRefreshRequest())
     if ((tokenExpiration-600) < (new Date().getTime()/1000)) {

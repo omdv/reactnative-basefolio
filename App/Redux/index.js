@@ -10,7 +10,8 @@ export default () => {
     search: require('./SearchRedux').reducer,
     auth: require('./AuthRedux').reducer,
     prices: require('./CryptoPricesRedux').reducer,
-    positions: require('./PositionsRedux').reducer
+    positions: require('./PositionsRedux').reducer,
+    gdax: require('./GdaxRedux').reducer
   })
 
   return configureStore(rootReducer, rootSaga)

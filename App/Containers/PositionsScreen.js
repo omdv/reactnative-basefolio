@@ -77,7 +77,7 @@ class PositionsScreen extends Component {
         <View style={styles.content}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionHeaderText}>Closed positions</Text>
-            <Text style={styles.sectionHeaderText}>{summary[0].closed_gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
+            <Text style={styles.sectionHeaderText}>P/L: {summary[0].closed_gain.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
           </View>
           <FlatList
             contentContainerStyle={styles.listContent}

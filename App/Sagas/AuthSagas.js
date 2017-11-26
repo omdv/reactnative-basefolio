@@ -13,11 +13,19 @@
 import { delay } from 'redux-saga'
 import { call, put, all, select, fork, race, take, cancel, cancelled } from 'redux-saga/effects'
 import AuthActions, { AuthTypes } from '../Redux/AuthRedux'
+import GdaxActions from '../Redux/GdaxRedux'
 import CryptoPricesActions, { CryptoPricesTypes }  from '../Redux/CryptoPricesRedux'
-import { TransformTransactionsForCoin, TransformAllTransactions } from '../Transforms/TransformTransactions'
+import {
+  TransformTransactionsForCoin,
+  TransformAllTransactions,
+  UpdateTransactionsBySource,
+  TransformGDAXOrders 
+  } from '../Transforms/TransformTransactions'
 
 const getRefreshToken = (state) => state.auth.refresh_token
 const getAccessToken = (state) => state.auth.access_token
+const getAllTransactions = (state) => state.auth.transactions
+
 
 function * getUserData (api, action) {
   const access_token = yield select(getAccessToken)
@@ -86,7 +94,6 @@ function * getNewToken (api, action, millis) {
   }
 }
 
-
 function * getCoinbaseData (api, action, millis) {
   // delay
   yield call(delay, millis)
@@ -110,6 +117,10 @@ function * getCoinbaseData (api, action, millis) {
     // transform all transactions
     transactions = TransformAllTransactions(transactions)
 
+    // replace coinbase transactions
+    all_transactions = yield select(getAllTransactions)
+    transactions = UpdateTransactionsBySource("Coinbase", all_transactions, transactions)
+
     if (ok) {
       yield put(AuthActions.accountsSuccess(accounts, transactions))
     } else {
@@ -120,20 +131,46 @@ function * getCoinbaseData (api, action, millis) {
   }
 }
 
+export function * getGDAXData (api, action, millis) {
+  // delay
+  yield call(delay, millis)
+
+  // API call
+  const response = yield call(api.getFills)
+
+  // success?
+  if (response.ok) {
+    // transform orders
+    new_transactions = TransformGDAXOrders(response)
+    
+    // update transactions
+    old_transactions = yield select(getAllTransactions)
+    old_transactions = UpdateTransactionsBySource("GDAX", old_transactions, new_transactions)
+    let t = true
+    
+    yield put(AuthActions.saveTransactions(old_transactions))
+  } else {
+    yield put(GdaxActions.gdaxFailure())
+  }
+}
+
+
 // helper to define race
-function* refreshTokenPoll(api, action, millis) {
+function* refreshTokenPoll(authApi, walletApi, action, millis) {
   try {
     while (true) {
-      yield call(getNewToken, api, action, millis)
+      yield call(getNewToken, authApi, action, millis)
+      yield call(getUserData, walletApi, action, millis)
     }
   } finally {}
 }
 
 // helper to define race
-function* refreshTransactionsPoll(api, action, millis) {
+function* refreshTransactionsPoll(coinbaseAPI, gdaxAPI, action, millis) {
   try {
     while (true) {
-      yield call(getCoinbaseData, api, action, millis)
+      yield call(getCoinbaseData, coinbaseAPI, action, millis)
+      yield call(getGDAXData, gdaxAPI, action, millis)
     }
   } finally {}
 }
@@ -150,13 +187,14 @@ export function * loginSaga(action) {
   }
 }
 
-export function * refreshTokenOnce(authApi, action) {
+export function * refreshTokenOnce(authApi, walletApi, action) {
   yield call(getNewToken, authApi, 0)
+  yield call(getUserData, walletApi, 0)
 }
 
-export function * startCoinbasePoll(authApi, transactionsApi, action) {
-    const bgToken = yield fork(refreshTokenPoll, authApi, action, 3949*1000)
-    const bgTrans = yield fork(refreshTransactionsPoll, transactionsApi, action, 1800*1000)
+export function * startTransactionsPoll(authApi, coinbaseAPI, gdaxAPI, action) {
+    const bgToken = yield fork(refreshTokenPoll, authApi, coinbaseAPI, action, 3949*1000)
+    const bgTrans = yield fork(refreshTransactionsPoll, coinbaseAPI, gdaxAPI, action, 1800*1000)
     
     yield race([
       take(AuthTypes.ACCOUNTS_POLL_STOP),
@@ -167,6 +205,8 @@ export function * startCoinbasePoll(authApi, transactionsApi, action) {
 }
 
 // called on accountsRequest
-export function * getCoinbaseDataOnce(transactionsApi, action) {
-  yield call(getCoinbaseData, transactionsApi, action, 0)
+export function * getAllTransactionsOnce(coinbaseAPI, gdaxAPI, action) {
+  yield call(getCoinbaseData, coinbaseAPI, action, 0)
+  yield call(getGDAXData, gdaxAPI, action, 0)
+  yield call(getUserData, coinbaseAPI, action, 0)
 }

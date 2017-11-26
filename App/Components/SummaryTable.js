@@ -2,13 +2,15 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types';
 import { View, Text, TouchableOpacity, FlatList, ART } from 'react-native'
 import styles from './Styles/SummaryTableStyle'
-import { Colors, Metrics } from '../Themes'
+import { Colors, Metrics, ApplicationStyles } from '../Themes'
 // d3 functions
 import * as scale from 'd3-scale'
 import * as shape from 'd3-shape'
 import * as d3Array from 'd3-array'
 // Graph Functions
 import * as graphUtils from '../Transforms/GraphUtils'
+// Output functions
+var numeral = require('numeral')
 
 const {
   Surface,
@@ -50,11 +52,11 @@ export default class SummaryTable extends Component {
   numToKey (item, num) {
     switch (num) {
       case 0:
-        return (item.return_period > 0 ? "+" : "") + item.return_period.toFixed(2)+' %'
+        return (item.return_period > 0 ? "+" : "") + numeral(item.return_period).format(ApplicationStyles.formatPercent)
       case 1:
-        return (item.gain_period > 0 ? "+" : "") + item.gain_period.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+        return (item.gain_period > 0 ? "+" : "") + numeral(item.gain_period).format(ApplicationStyles.formatValues)
       case 2:
-        return item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+        return numeral(item.price).format(ApplicationStyles.formatPrices)
     }
   }
   
@@ -107,7 +109,7 @@ export default class SummaryTable extends Component {
       <TouchableOpacity style={styles.rowContainer} onPress={() => this.props.navigation.navigate('PositionsScreen', {coin: item.coin})}>
           <View style={{flexDirection: 'column', width: Math.floor(Metrics.screenWidth/3)-Metrics.doubleBaseMargin, height: Metrics.rowHeight - Metrics.doubleBaseMargin, alignItems: 'center', justifyContent: 'center'}}>
             <View><Text style={styles.rowBoldLabel}>{item.coin}</Text></View>
-            <View><Text style={styles.rowMuteLabel}>{item.amount.toFixed(8)}</Text></View>
+            <View><Text style={styles.rowMuteLabel}>{item.amount.toPrecision(10)}</Text></View>
           </View>
           <View style={{flexDirection: 'column', marginHorizontal: 0}}>
             <Surface width={graphWidth + Metrics.doubleBaseMargin} height={graphHeight+Metrics.doubleBaseMargin}>
