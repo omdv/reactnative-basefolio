@@ -23,6 +23,7 @@ export default class SummaryTable extends Component {
     summary: PropTypes.array,
     sparkline: PropTypes.object,
     current_prices: PropTypes.object,
+    period: PropTypes.string
   }
 
   constructor(props) {
@@ -92,6 +93,7 @@ export default class SummaryTable extends Component {
   renderRow ({item}) {
     const isPositive = item.gain_period > 0 ? 1 : 0
     const gainButtonWidth = Math.floor(Metrics.screenWidth/3)-2*Metrics.doubleBaseMargin
+    const { period } = this.props
     
     // prepare sparkline data
     const { sparkline } = this.props
@@ -106,7 +108,7 @@ export default class SummaryTable extends Component {
     const graph = price ? graphUtils.createSparkLine(price, graphWidth, graphHeight) : {path: null}
 
     return (
-      <TouchableOpacity style={styles.rowContainer} onPress={() => this.props.navigation.navigate('PositionsScreen', {coin: item.coin})}>
+      <TouchableOpacity style={styles.rowContainer} onPress={() => this.props.navigation.navigate('PositionsScreen', {coin: item.coin, period: period})}>
           <View style={{flexDirection: 'column', width: Math.floor(Metrics.screenWidth/3)-Metrics.doubleBaseMargin, height: Metrics.rowHeight - Metrics.doubleBaseMargin, alignItems: 'center', justifyContent: 'center'}}>
             <View><Text style={styles.rowBoldLabel}>{item.coin}</Text></View>
             <View><Text style={styles.rowMuteLabel}>{item.amount.toPrecision(10)}</Text></View>

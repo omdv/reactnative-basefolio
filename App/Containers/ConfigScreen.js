@@ -64,6 +64,7 @@ class ConfigScreen extends Component {
     const { user_profile, accounts, gdaxRequest } = this.props
     const isAuthed = user_profile ? true : false
     return (
+      <View style={styles.mainContainer}>
       <ScrollView style={styles.container}>
         <KeyboardAvoidingView behavior='position'>
           <View style={styles.header} >
@@ -107,6 +108,7 @@ class ConfigScreen extends Component {
           </View>
         </KeyboardAvoidingView>
       </ScrollView>
+      </View>
     )
   }
 }

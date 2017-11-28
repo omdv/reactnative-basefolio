@@ -10,13 +10,16 @@ import OpenPositionCard from '../Components/OpenPositionCard'
 import PositionsActions from '../Redux/PositionsRedux'
 // Styles
 import styles from './Styles/PositionsScreenStyle'
-import { Colors } from '../Themes'
+import { Colors, Metrics } from '../Themes'
 
 // react-native elements
 import { Icon } from 'react-native-elements'
 
 // lodash
 import * as _ from 'lodash'
+
+// Output functions
+var numeral = require('numeral')
 
 class PositionsScreen extends Component {
 
@@ -48,17 +51,52 @@ class PositionsScreen extends Component {
 
   render () {
     const { goBack } = this.props.navigation
-    const { coin } = this.props.navigation.state.params
+    const { coin, period } = this.props.navigation.state.params
     const { positions, summaries } = this.props
     summary = _.filter(summaries, v => (v.coin === coin))
     return (
+      <View style={styles.mainContainer}>
       <ScrollView style={styles.container}>
         <View style={styles.header} >
           <View style={{width: 50}}>
             <Icon name='chevron-left' color={Colors.navigation} onPress={() => goBack()} underlayColor={Colors.background}/></View>
-          <View><Text style={styles.titleText}>Positions for {coin}</Text></View>
+          <View><Text style={styles.titleText}>Summary for {coin}</Text></View>
           <View style={{width: 50}}></View> 
         </View>
+        <View style={styles.divider} />
+        <View style={styles.content}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeaderText}>Cost basis</Text>
+              <Text style={styles.sectionHeaderText}>{numeral(summary[0].cost_basis).format('$0.000a')}</Text>
+            </View>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeaderText}>Current value</Text>
+              <Text style={styles.sectionHeaderText}>{numeral(summary[0].current_value).format('$0.000a')}</Text>
+            </View>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeaderText}>Total P/L</Text>
+              <Text style={styles.sectionHeaderText}>{numeral(summary[0].gain).format('$0.000a')}</Text>
+            </View>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeaderText}>P/L over {period}</Text>
+              <Text style={styles.sectionHeaderText}>{numeral(summary[0].gain_period).format('$0.000a')}</Text>
+            </View>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeaderText}>Total return</Text>
+              <Text style={styles.sectionHeaderText}>{numeral(summary[0].return).format('0.00%')}</Text>
+            </View>   
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeaderText}>Return over {period}</Text>
+              <Text style={styles.sectionHeaderText}>{numeral(summary[0].return_period).format('0.00%')}</Text>
+            </View>  
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeaderText}>Portfolio ratio</Text>
+              <Text style={styles.sectionHeaderText}>{numeral(summary[0].ratio).format('0.00%')}</Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.divider} />
         <View style={styles.content}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionHeaderText}>Open positions</Text>
@@ -89,6 +127,7 @@ class PositionsScreen extends Component {
           />
         </View>
       </ScrollView>
+      </View>
     )
   }
 }

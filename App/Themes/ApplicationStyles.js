@@ -9,7 +9,7 @@ const ApplicationStyles = {
   screen: {
     mainContainer: {
       flex: 1,
-      backgroundColor: Colors.transparent
+      backgroundColor: Colors.background,
     },
     backgroundImage: {
       position: 'absolute',
@@ -20,8 +20,8 @@ const ApplicationStyles = {
     },
     container: {
       flex: 1,
-      paddingTop: Metrics.baseMargin,
-      backgroundColor: Colors.transparent
+      marginTop: Metrics.doubleBaseMargin,
+      backgroundColor: Colors.background
     },
     section: {
       margin: Metrics.smallMargin,
@@ -114,7 +114,7 @@ const ApplicationStyles = {
   },
   formatValues: '$0.00a',
   formatPercent: '0.00a%',
-  formatPrices: '$0.000a'
+  formatPrices: '$0,0'
 }
 
 export default ApplicationStyles

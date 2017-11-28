@@ -3,14 +3,15 @@ import { ApplicationStyles, Metrics, Colors, Fonts } from '../../Themes'
 
 export default StyleSheet.create({
   ...ApplicationStyles.screen,
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background
-  },
   divider: {
-    height: Metrics.doubleBaseMargin*2,
-    // borderBottomColor: Colors.charcoal,
-    // borderBottomWidth: StyleSheet.hairlineWidth,
+    height: Metrics.baseMargin,
+    borderBottomColor: Colors.charcoal,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  sectionHeaderRow: {
+    paddingHorizontal: Metrics.doubleSection,
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   },
   rowContainer: {
     height: Metrics.doubleBaseMargin*2,

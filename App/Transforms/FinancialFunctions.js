@@ -523,10 +523,10 @@ export function getAnalysis(assets, transactions, accounts, spot_prices, hist_pr
     processed = _.zipObject(processed.map(a => a.coin), processed)
     
     // merge with summaries
-    let d = true
     for (i in summaries) {
       summaries[i]['gain_period'] = processed[i].gain
       summaries[i]['return_period'] = processed[i].gain/processed[i].cost_basis
+      summaries[i]['ratio'] = summaries[i].current_value/portfolio.current_value
     }
     returns.summaries = _.values(summaries)
 

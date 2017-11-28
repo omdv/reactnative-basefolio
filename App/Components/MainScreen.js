@@ -137,8 +137,9 @@ export class MainScreen extends Component {
     const { refreshCurrentPrices, refreshAllPrices, fetching_current } = this.props
     const isPositive = financial_summary.portfolio.gain_period > 0 ? true : false
     return (
+      <View style={styles.mainContainer}>
       <ScrollView style={styles.container}>
-        <View style={styles.header} >
+        <View style={styles.header}>
           <View style={{width: 50}}>
             <Icon
               name='settings'
@@ -153,7 +154,7 @@ export class MainScreen extends Component {
           </View> 
         </View>
         <View style={styles.content}>
-          <SummarySheet summary={financial_summary.portfolio} />
+          <SummarySheet summary={financial_summary.portfolio}/>
           <View style={styles.graphWrapper}>
             <ReturnsGraph
               datum={financial_summary.returngraph.data}
@@ -175,9 +176,11 @@ export class MainScreen extends Component {
             summary={financial_summary.summaries}
             sparkline={financial_summary.sparkline}
             current_prices={financial_summary.current_prices}
-            navigation={this.props.navigation} />
+            navigation={this.props.navigation}
+            period={period}/>
         </View>
       </ScrollView>
+      </View>
     )
   }
 }
