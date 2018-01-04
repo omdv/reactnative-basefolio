@@ -45,6 +45,13 @@ class ConfigScreen extends Component {
   constructor(props) {
     super(props)
     this.logout = this.logout.bind(this)
+    this.state = {
+      gdax: {
+        passphrase: this.props.passphrase,
+        api_key: this.props.api_key,
+        api_secret: this.props.api_secret,
+      }
+    }
   }
 
   logout () {
@@ -54,6 +61,7 @@ class ConfigScreen extends Component {
 
   onGdaxUpdate () {
     var value = this.refs.form.getValue();
+    this.setState({gdax: value})
     if (value) {
       this.props.gdaxRequest(value.passphrase, value.api_key, value.api_secret)
     }
@@ -63,6 +71,7 @@ class ConfigScreen extends Component {
     const { goBack } = this.props.navigation
     const { user_profile, accounts, gdaxRequest } = this.props
     const isAuthed = user_profile ? true : false
+    const { gdax_authed } = this.props
     return (
       <View style={styles.mainContainer}>
       <ScrollView style={styles.container}>
@@ -93,7 +102,7 @@ class ConfigScreen extends Component {
                   height={Metrics.icons.large}
                   source={require("../Images/gdax.svg")}
                 />
-              <Text style={styles.sectionText}>GDAX API keys need to be copied manually. Open the link below to log into GDAX and generate the new keys with the "View" permission. Switch between screens to copy the API secret, API key and API passphrase.</Text>
+              <Text style={styles.sectionTextSmall}>GDAX API keys need to be copied manually. I recommend to generate them on PC and email to yourself so you can easily copy and paste them in the form below. Use the "View" only permission.</Text>
               <TouchableOpacity
                 style={{backgroundColor: Colors.section_background}}
                 onPress={() => Linking.openURL("https://www.gdax.com/settings/api")}>
@@ -102,7 +111,9 @@ class ConfigScreen extends Component {
               <Form
                 ref="form"
                 type={gdax_api}
+                value={this.state.gdax}
               />
+              {!gdax_authed && <Text style={styles.sectionText, {color: "red"}}>Invalid GDAX keys!</Text> }
               <RoundedButton text="Save GDAX keys" onPress={() => this.onGdaxUpdate()}/>
             </View>
           </View>
@@ -116,7 +127,11 @@ class ConfigScreen extends Component {
 const mapStateToProps = (state) => {
   return {
     user_profile: state.auth.user_profile,
-    accounts: state.auth.accounts
+    accounts: state.auth.accounts,
+    passphrase: state.gdax.passphrase,
+    api_key: state.gdax.key,
+    api_secret: state.gdax.secret,
+    gdax_authed: state.gdax.gdax_authed
   }
 }
 

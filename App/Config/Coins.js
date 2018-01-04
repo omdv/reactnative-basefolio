@@ -1,3 +1,3 @@
 module.exports = {
-	coins: ['BTC', 'ETH', 'LTC']
+	coins: ['BTC', 'ETH', 'LTC', 'BCH']
 };

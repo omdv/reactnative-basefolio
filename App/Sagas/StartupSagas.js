@@ -20,11 +20,11 @@ export function * startup (action) {
     // check if it has expired
     const tokenExpiration = yield select(selectTokenExpiration)
     
-    // DEBUG:
-    // yield put(AuthActions.authRefreshRequest())
-    if ((tokenExpiration-600) < (new Date().getTime()/1000)) {
-      yield put(AuthActions.authRefreshRequest())
-    }
+    // HACK: call always to avoid rehydration with false isAuthed
+    yield put(AuthActions.authRefreshRequest())
+    // if ((tokenExpiration-600) < (new Date().getTime()/1000)) {
+    //   yield put(AuthActions.authRefreshRequest())
+    // }
   }
 
   const hasPrices = yield select(selectHasPrices)

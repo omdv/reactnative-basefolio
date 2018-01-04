@@ -15,6 +15,15 @@ export function TransformTransactionsForCoin(trans) {
     // flatten and convert to numeric
     trans = trans.data
 
+    // // round amounts to minimum denomination
+    // trans.forEach(function(t) {
+    //     if (t.coin === "BCH" || t.coin === "BTC") {
+            
+    //     }
+    //     t.tag = t.tag.toLowerCase()
+    // })
+
+
     trans = trans.map(e => { return {
         coin: e.amount.currency,
         cost_basis: Number(e.native_amount.amount),
@@ -43,8 +52,6 @@ export function TransformAllTransactions(trans) {
 
 export function TransformGDAXOrders(trans) {
     // flatten and convert to numeric
-    trans = trans.data
-
     trans = trans.map(e => { return {
         coin: e.product_id.split("-")[0],
         fiat: e.product_id.split("-")[1],

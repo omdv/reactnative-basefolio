@@ -41,6 +41,7 @@ export default function * root () {
 
     // Accounts and transactions on request and/or login
     takeLatest(AuthTypes.ACCOUNTS_REQUEST, getAllTransactionsOnce, coinWalletApi, gdaxApi),
+    takeLatest(GdaxTypes.GDAX_REQUEST, getAllTransactionsOnce, coinWalletApi, gdaxApi),   
 
     // Starting polls for access token and transactions
     takeLatest(AuthTypes.ACCOUNTS_POLL_START, startTransactionsPoll, coinAuthApi, coinWalletApi, gdaxApi),

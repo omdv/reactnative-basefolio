@@ -11,6 +11,8 @@ import * as d3Array from 'd3-array'
 import * as graphUtils from '../Transforms/GraphUtils'
 // Output functions
 var numeral = require('numeral')
+// Overlay component
+import Overlay from '../Components/Overlay'
 
 const {
   Surface,
@@ -53,14 +55,26 @@ export default class SummaryTable extends Component {
   numToKey (item, num) {
     switch (num) {
       case 0:
-        return (item.return_period > 0 ? "+" : "") + numeral(item.return_period).format(ApplicationStyles.formatPercent)
+        return (item.price_change > 0 ? "+" : "") + numeral(item.price_change).format(ApplicationStyles.formatPercent)
       case 1:
         return (item.gain_period > 0 ? "+" : "") + numeral(item.gain_period).format(ApplicationStyles.formatValues)
       case 2:
         return numeral(item.price).format(ApplicationStyles.formatPrices)
     }
   }
+
+  idx_to_text = {
+    0: 'Price change during the period',
+    1: 'Gain/loss during the period',
+    2: 'Current price'
+  }
   
+  formatAmount(amount) {
+    whole = Math.ceil(Math.log10(amount))
+    deci = whole > 0 ? 10 - whole : 9
+    return amount.toFixed(deci)
+  }
+
   assignReturnValue () {
     let { summary } = this.props
     let newSummary = []
@@ -70,8 +84,7 @@ export default class SummaryTable extends Component {
       newSummary.push(e)
     })
     this.setState({
-      summary: newSummary,
-
+      summary: newSummary
     })
   }
   
@@ -111,7 +124,7 @@ export default class SummaryTable extends Component {
       <TouchableOpacity style={styles.rowContainer} onPress={() => this.props.navigation.navigate('PositionsScreen', {coin: item.coin, period: period})}>
           <View style={{flexDirection: 'column', width: Math.floor(Metrics.screenWidth/3)-Metrics.doubleBaseMargin, height: Metrics.rowHeight - Metrics.doubleBaseMargin, alignItems: 'center', justifyContent: 'center'}}>
             <View><Text style={styles.rowBoldLabel}>{item.coin}</Text></View>
-            <View><Text style={styles.rowMuteLabel}>{item.amount.toPrecision(10)}</Text></View>
+            <View><Text style={styles.rowMuteLabel}>{this.formatAmount(item.amount)}</Text></View>
           </View>
           <View style={{flexDirection: 'column', marginHorizontal: 0}}>
             <Surface width={graphWidth + Metrics.doubleBaseMargin} height={graphHeight+Metrics.doubleBaseMargin}>
@@ -154,6 +167,7 @@ export default class SummaryTable extends Component {
     const { summary } = this.state
     return (
       <View style={styles.container}>
+        <Overlay text={this.idx_to_text[this.returnIdx]} />
         <FlatList
           contentContainerStyle={styles.listContent}
           data={ summary }

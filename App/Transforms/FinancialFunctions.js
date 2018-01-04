@@ -85,47 +85,47 @@ function pricesForSparkLine(prices, period) {
   })
 }
 
-/**
- * Calculate positions for assets and transactions
- * @param {array} array of assets
- * @param {array} array of array of transactions per wallet
- * @return {object} object by asset with buy/sell transactions 
- */
-function processCoinbaseTransactions(assets, accounts, transactions) {
-  let positions = []
-  let cleaned_positions = {}
+// /**
+//  * Calculate positions for assets and transactions
+//  * @param {array} array of assets
+//  * @param {array} array of array of transactions per wallet
+//  * @return {object} object by asset with buy/sell transactions 
+//  */
+// function processCoinbaseTransactions(assets, accounts, transactions) {
+//   let positions = []
+//   let cleaned_positions = {}
 
-  transactions.map((w,i) => {
-    //initialize a new
-    positions[i] = []
-    // move older records to top
-    wallet = flipArray(w)
+//   transactions.map((w,i) => {
+//     //initialize a new
+//     positions[i] = []
+//     // move older records to top
+//     wallet = flipArray(w)
     
-    wallet.map(o => {
-      if (o.type === "buy" || o.type === "sell") {
-        positions[i].push({
-          'order_type': o.type,
-          'amount': o.amount,
-          'coin': o.amount.currency,
-          'price':  o.cost_basis / o.amount,
-          'cost_basis': o.cost_basis,
-          'time': Date.parse(o.created_at),
-          'date': dateToYMD( Date.parse(o.created_at))
-        })
-      }
-      positions[i].sort((a,b) => (a.date - b.date))
-    })
-  })
+//     wallet.map(o => {
+//       if (o.type === "buy" || o.type === "sell") {
+//         positions[i].push({
+//           'order_type': o.type,
+//           'amount': o.amount,
+//           'coin': o.amount.currency,
+//           'price':  o.cost_basis / o.amount,
+//           'cost_basis': o.cost_basis,
+//           'time': Date.parse(o.created_at),
+//           'date': dateToYMD( Date.parse(o.created_at))
+//         })
+//       }
+//       positions[i].sort((a,b) => (a.date - b.date))
+//     })
+//   })
 
-  // remove accounts with no positions
-  assets.map(a => {
-    let idx = accounts.findIndex(x => x.name === a + ' Wallet')
-    let pos = positions[idx]
-    cleaned_positions[a] = pos
-  })
+//   // remove accounts with no positions
+//   assets.map(a => {
+//     let idx = accounts.findIndex(x => x.name === a + ' Wallet')
+//     let pos = positions[idx]
+//     cleaned_positions[a] = pos
+//   })
 
-  return cleaned_positions
-}
+//   return cleaned_positions
+// }
 
 /**
  * Initialize empty returns result
@@ -161,7 +161,8 @@ function initReturnsResult() {
     positions: {
       BTC: [],
       ETH: [],
-      LTC: []
+      LTC: [],
+      BCH: []
     }
   }
 }
@@ -188,6 +189,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
       _.mapValues(_.keyBy(hist_prices['BTC'], 'date'), (o) => {return {'BTC': o}}),
       _.mapValues(_.keyBy(hist_prices['ETH'], 'date'), (o) => {return {'ETH': o}}),
       _.mapValues(_.keyBy(hist_prices['LTC'], 'date'), (o) => {return {'LTC': o}}),
+      _.mapValues(_.keyBy(hist_prices['BCH'], 'date'), (o) => {return {'BCH': o}}),
       _.mapValues(transactions, (o) => {return {'orders': o}})
     )
 
@@ -208,7 +210,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
       if ("orders" in date || portfolio.length > 0 ) {
         // init portfolio or take previous one
         if (portfolio.length === 0) {
-          ptf = _.mapValues({"BTC":{}, "ETH": {}, "LTC": {}, "portfolio": {}}, o => {return {
+          ptf = _.mapValues({"BTC":{}, "ETH": {}, "LTC": {}, "BCH": {}, "portfolio": {}}, o => {return {
             "amount": 0,
             "cost_basis": 0,
             "current_value": 0,
@@ -234,6 +236,23 @@ function getReturnsByDate(assets, transactions, hist_prices) {
 
             // counter for sold closed gain
             let sold_closed_gain = 0
+
+            // round amounts to lowest denominator
+            switch(coin) {
+              case "BTC":
+                factor = 1e8
+                break
+              case "BCH":
+                factor = 1e8
+                break
+              case "ETH":
+                factor = 1e18
+                break
+              case "LTC":
+                factor = 1e18
+                break
+            }
+            order.amount = Math.round(order.amount * factor) / factor
 
             // update amounts
             if (order.type === "buy") {
@@ -323,7 +342,8 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                   // update counters
                   sold_cost_basis -= open_pos.cost_basis
                   sold_closed_gain += gain
-                  amount_left_to_sell -= open_pos.amount
+                  amount_left_to_sell = amount_left_to_sell - open_pos.amount
+                  amount_left_to_sell = Math.round(amount_left_to_sell * factor) / factor
                   closed.closed_positions.push(pos)
                   open_positions = _.remove(open_positions, o => o.idx !== open_pos.idx)
                 } else {
@@ -351,13 +371,14 @@ function getReturnsByDate(assets, transactions, hist_prices) {
                   
                   // create and add the new split open position
                   pos_amount = open_pos.amount - amount_sold
+                  pos_amount = Math.round(pos_amount * factor) / factor
                   current_value = current_prices[open_pos.coin].close * pos_amount
                   cost_basis = pos_amount * open_pos.price
                   gain = current_value - cost_basis
                   pos = {
                     'type': 'buy',
                     'original_amount': open_pos.amount,
-                    'amount': open_pos.amount - amount_sold,
+                    'amount': pos_amount,
                     'coin': open_pos.coin,
                     'price': open_pos.price,
                     'date': open_pos.date,
@@ -393,11 +414,21 @@ function getReturnsByDate(assets, transactions, hist_prices) {
         
         // Now update prices and gains for all assets
         _.forEach(assets, v => {
-          ptf[v].current_value = ptf[v].amount * date[v].close
-          ptf[v].open_gain = ptf[v].current_value - ptf[v].cost_basis
-          ptf[v].gain = ptf[v].open_gain + ptf[v].closed_gain
-          ptf[v].return = ptf[v].gain / ptf[v].cost_basis
-          ptf[v].price = date[v].close
+          if (v in date) {
+            ptf[v].current_value = ptf[v].amount * date[v].close
+            ptf[v].open_gain = ptf[v].current_value - ptf[v].cost_basis
+            ptf[v].gain = ptf[v].open_gain + ptf[v].closed_gain
+            ptf[v].return = ptf[v].cost_basis > 0 ? (ptf[v].gain / ptf[v].cost_basis) : 0
+            ptf[v].price = date[v].close
+          }
+          // not trading yet
+          else {
+            ptf[v].current_value = 0
+            ptf[v].open_gain = 0
+            ptf[v].gain = 0
+            ptf[v].return = 0
+            ptf[v].price = 0
+          }
         })
 
         // Run summary for portfolio and update
@@ -424,8 +455,10 @@ function getReturnsByDate(assets, transactions, hist_prices) {
     let latest = portfolio[portfolio.length-1]
 
     // get summaries
-    let summaries = _.map(latest, (v,k) => _.assign(v,{coin: k}) )
-    summaries = _.filter(summaries, o => o.amount ) // portfolio will have amount=0
+    let ss1 = _.map(latest, (v,k) => _.assign(v, {coin: k}))
+    let ss2 = _.filter(ss1, o => o.coin !== "portfolio" ) // portfolio will have amount=0
+    // sort out those that do not have any return
+    let ss3 = _.filter(ss2, o => o.gain !== 0)
 
     // process positions prior to returning
     open_positions = _.groupBy(open_positions, "coin")
@@ -436,7 +469,7 @@ function getReturnsByDate(assets, transactions, hist_prices) {
       returnsdata: _.values(_.mapValues(portfolio, o => o.portfolio)),
       full_history: portfolio,
       portfolio: latest.portfolio,
-      summaries: summaries,
+      summaries: ss3,
       open_positions: open_positions,
       closed_positions: closed_positions
     }
@@ -506,14 +539,18 @@ export function getAnalysis(assets, transactions, accounts, spot_prices, hist_pr
     fh = returns.full_history
     // TODO: use assets list
     // needed to add the zero baseline otherwise numbers start from 1st day
-    fh.splice(0,0,{BTC: {gain: 0}, ETH: {gain: 0}, LTC: {gain: 0}, portfolio: {gain: 0}})
+    fh.splice(0,0,{BTC: {gain: 0}, ETH: {gain: 0}, LTC: {gain: 0}, BCH: {gain: 0}, portfolio: {gain: 0}})
     
     if (period_duration > 0) {
       fh = fh.slice(fh.length-period_duration)
     }
 
     // calculate delta in returns over period
-    processed = Object.keys(fh[0]).map(e => { return {gain: fh[fh.length-1][e].gain-fh[0][e].gain, cost_basis:fh[fh.length-1][e].cost_basis, coin:e}})
+    processed = Object.keys(fh[0]).map(e => { return {
+      gain: fh[fh.length-1][e].gain-fh[0][e].gain,
+      cost_basis:fh[fh.length-1][e].cost_basis,
+      price_change: (fh[fh.length-1][e].price-fh[0][e].price)/fh[0][e].price,
+      coin:e}})
     
     // prepare for merging
     summaries = returns.summaries
@@ -525,7 +562,8 @@ export function getAnalysis(assets, transactions, accounts, spot_prices, hist_pr
     // merge with summaries
     for (i in summaries) {
       summaries[i]['gain_period'] = processed[i].gain
-      summaries[i]['return_period'] = processed[i].gain/processed[i].cost_basis
+      summaries[i]['price_change'] = processed[i].price_change
+      summaries[i]['return_period'] = processed[i].cost_basis > 0 ? processed[i].gain/processed[i].cost_basis : 'N/A'
       summaries[i]['ratio'] = summaries[i].current_value/portfolio.current_value
     }
     returns.summaries = _.values(summaries)

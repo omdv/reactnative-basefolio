@@ -26,6 +26,11 @@ const getRefreshToken = (state) => state.auth.refresh_token
 const getAccessToken = (state) => state.auth.access_token
 const getAllTransactions = (state) => state.auth.transactions
 
+const getGDAXpass = (state) => state.gdax.passphrase
+const getGDAXsecret = (state) => state.gdax.secret
+const getGDAXkey = (state) => state.gdax.key
+const getHasGDAXkeys = (state) => state.gdax.has_keys
+
 
 function * getUserData (api, action) {
   const access_token = yield select(getAccessToken)
@@ -132,25 +137,45 @@ function * getCoinbaseData (api, action, millis) {
 }
 
 export function * getGDAXData (api, action, millis) {
-  // delay
-  yield call(delay, millis)
+  const hasGDAXkeys = yield select(getHasGDAXkeys)
+  
+  if (hasGDAXkeys) {
+    // delay
+    yield call(delay, millis)
 
-  // API call
-  const response = yield call(api.getFills)
+    // parse API info
+    const passphrase = yield select(getGDAXpass)
+    const secret = yield select(getGDAXsecret)
+    const key = yield select(getGDAXkey)
 
-  // success?
-  if (response.ok) {
-    // transform orders
-    new_transactions = TransformGDAXOrders(response)
-    
-    // update transactions
-    old_transactions = yield select(getAllTransactions)
-    old_transactions = UpdateTransactionsBySource("GDAX", old_transactions, new_transactions)
-    let t = true
-    
-    yield put(AuthActions.saveTransactions(old_transactions))
-  } else {
-    yield put(GdaxActions.gdaxFailure())
+    // API call - initial
+    var response = yield call(api.getFills, passphrase, key, secret, false)
+
+    // success?
+    if (response.ok) {
+      var page_data = response['data']
+
+      // check for pagination
+      while (response['data'].length > 0) {
+        after_cursor = response['headers']['cb-after']
+        var response = yield call(api.getFills, passphrase, key, secret, after_cursor)
+        new_page_data = response['data']
+        var page_data = page_data.concat(new_page_data)
+      }
+
+      // transform orders
+      new_transactions = TransformGDAXOrders(page_data)
+      
+      // update transactions
+      old_transactions = yield select(getAllTransactions)
+      old_transactions = UpdateTransactionsBySource("GDAX", old_transactions, new_transactions)
+      let t = true
+      
+      yield put(AuthActions.saveTransactions(old_transactions))
+      yield put(GdaxActions.gdaxSuccess())
+    } else {
+      yield put(GdaxActions.gdaxFailure())
+    }
   }
 }
 

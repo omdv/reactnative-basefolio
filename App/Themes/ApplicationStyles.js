@@ -36,6 +36,13 @@ const ApplicationStyles = {
       marginVertical: Metrics.smallMargin,
       textAlign: 'center'
     },
+    sectionTextSmall: {
+      ...Fonts.style.small,
+      paddingVertical: Metrics.smallMargin,
+      color: Colors.snow,
+      marginVertical: Metrics.smallMargin,
+      textAlign: 'center'
+    },
     sectionTextLink: {
       ...Fonts.style.normal,
       paddingVertical: Metrics.smallMargin,
@@ -81,7 +88,7 @@ const ApplicationStyles = {
       textAlign: 'center',
       margin: 3,
       fontSize: Fonts.size.small
-    },
+    }
   },
   darkLabelContainer: {
     padding: Metrics.smallMargin,

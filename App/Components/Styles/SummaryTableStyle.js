@@ -1,8 +1,9 @@
 import { StyleSheet } from 'react-native'
-import { Metrics, Colors } from '../../Themes'
+import { ApplicationStyles, Metrics, Colors } from '../../Themes'
 
 
 export default StyleSheet.create({
+  ...ApplicationStyles.screen,
   container: {
     flex: 1
   },

@@ -79,17 +79,17 @@ class PositionsScreen extends Component {
               <Text style={styles.sectionHeaderText}>{numeral(summary[0].gain).format('$0.000a')}</Text>
             </View>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionHeaderText}>P/L over {period}</Text>
+              <Text style={styles.sectionHeaderText}>P/L change over {period}</Text>
               <Text style={styles.sectionHeaderText}>{numeral(summary[0].gain_period).format('$0.000a')}</Text>
             </View>
-            <View style={styles.sectionHeaderRow}>
+            {/* <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionHeaderText}>Total return</Text>
               <Text style={styles.sectionHeaderText}>{numeral(summary[0].return).format('0.00%')}</Text>
             </View>   
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionHeaderText}>Return over {period}</Text>
               <Text style={styles.sectionHeaderText}>{numeral(summary[0].return_period).format('0.00%')}</Text>
-            </View>  
+            </View>   */}
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionHeaderText}>Portfolio ratio</Text>
               <Text style={styles.sectionHeaderText}>{numeral(summary[0].ratio).format('0.00%')}</Text>

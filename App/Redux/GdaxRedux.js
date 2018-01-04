@@ -5,8 +5,8 @@ import Immutable from 'seamless-immutable'
 
 const { Types, Creators } = createActions({
   gdaxRequest: ['passphrase', 'key', 'secret'],
-  gdaxSuccess: ['orders'],
-  gdaxFailure: null
+  gdaxSuccess: null,
+  gdaxFailure: null,
 })
 
 export const GdaxTypes = Types
@@ -15,12 +15,13 @@ export default Creators
 /* ------------- Initial State ------------- */
 
 export const INITIAL_STATE = Immutable({
+  has_keys: false,
   fetching: null,
   passphrase: null,
   key: null,
   secret: null,
-  orders: null,
-  error: null
+  error: null,
+  gdax_authed: false
 })
 
 /* ------------- Reducers ------------- */
@@ -28,18 +29,17 @@ export const INITIAL_STATE = Immutable({
 // request the data from an api
 export const request = (state, action) => {
   const { passphrase, key, secret } = action
-  return state.merge({ fetching: true, passphrase, key, secret })
+  return state.merge({ fetching: true, passphrase, key, secret, has_keys: true })
 }
 
 // successful api lookup
-export const success = (state, action) => {
-  const { orders } = action
-  return state.merge({ fetching: false, error: null, orders })
+export const success = state => {
+  return state.merge({ fetching: false, error: null, gdax_authed: true })
 }
 
 // Something went wrong somewhere.
 export const failure = state =>
-  state.merge({ fetching: false, error: true, orders: null, passphrase: null, key: null, secret: null })
+  state.merge({ fetching: false, error: true, orders: null, passphrase: null, key: null, secret: null, has_keys: false })
 
 /* ------------- Hookup Reducers To Types ------------- */
 
