@@ -67,6 +67,7 @@ export class MainScreen extends Component {
       assets: coins,
       sparklines_duration: 30,
       period: "week",
+      graphHeight: Metrics.screenHeight/5,
       
       // use from props
       // accounts: accounts ? accounts : default_accounts,
@@ -137,49 +138,55 @@ export class MainScreen extends Component {
     const { refreshCurrentPrices, refreshAllPrices, fetching_current } = this.props
     const isPositive = financial_summary.portfolio.gain_period > 0 ? true : false
     return (
-      <View style={styles.mainContainer}>
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <View style={{width: 50}}>
-            <Icon
-              name='settings'
-              color={Colors.navigation}
-              onPress={() => this.props.navigation.navigate('ConfigScreen')}
-              underlayColor={Colors.background}/></View>
-          <View style={{width: 50}}>
-            <Icon name='refresh'
-              color={fetching_current ? Colors.navigation_inactive : Colors.navigation}
-              onPress={!fetching_current ? () => this.refreshAll(): () => null}
-              underlayColor={Colors.background}/>
-          </View> 
-        </View>
-        <View style={styles.content}>
-          <SummarySheet summary={financial_summary.portfolio}/>
-          <View style={styles.graphWrapper}>
-            <ReturnsGraph
-              datum={financial_summary.returngraph.data}
-              yAccessor={d => d.gain}
-              width={Metrics.screenWidth}
-              height={Metrics.screenHeight/4}
-              isPositive={isPositive} />
+    <View style={styles.mainContainer}>
+        <ScrollView style={styles.container}>
+          <View style={styles.header} onLayout={(event) => {
+            var {height} = event.nativeEvent.layout
+            this.setState({headerHeight: height})
+          }}>
+            <View style={{width: 50}}>
+              <Icon
+                name='settings'
+                color={Colors.navigation}
+                onPress={() => this.props.navigation.navigate('ConfigScreen')}
+                underlayColor={Colors.background}/></View>
+            <View style={{width: 50}}>
+              <Icon name='refresh'
+                color={fetching_current ? Colors.navigation_inactive : Colors.navigation}
+                onPress={!fetching_current ? () => this.refreshAll(): () => null}
+                underlayColor={Colors.background}/>
+            </View> 
           </View>
-          <View style={styles.graphControl}>
-            {['week', 'month', 'quarter', 'year', 'all time'].map((v,i) => (
-              <TouchableOpacity style={{marginHorizontal: 10, padding: 5}} key={i} onPress={() => this.updateReturnsPlotPeriod(v)}>
-                <Text style={v === period ? styles.graphControlTextActive : styles.graphControlText}>{v}</Text>
-              </TouchableOpacity>
-            ))
-            }
+          <View style={styles.content} onLayout={(event) => {
+            var {height} = event.nativeEvent.layout
+            this.setState({contentHeight: height})
+          }}>
+            <SummarySheet summary={financial_summary.portfolio}/>
+            <View style={styles.graphWrapper}>
+              {this.state.graphHeight !== 0 && <ReturnsGraph
+                datum={financial_summary.returngraph.data}
+                yAccessor={d => d.gain}
+                width={Metrics.screenWidth}
+                height={this.state.graphHeight}
+                isPositive={isPositive} />}
+            </View>
+            <View style={styles.graphControl}>
+              {['week', 'month', 'quarter', 'year', 'all time'].map((v,i) => (
+                <TouchableOpacity style={{marginHorizontal: 10, padding: 5}} key={i} onPress={() => this.updateReturnsPlotPeriod(v)}>
+                  <Text style={v === period ? styles.graphControlTextActive : styles.graphControlText}>{v}</Text>
+                </TouchableOpacity>
+              ))
+              }
+            </View>
+            <View style={styles.divider} />
+            <SummaryTable
+              summary={financial_summary.summaries}
+              sparkline={financial_summary.sparkline}
+              current_prices={financial_summary.current_prices}
+              navigation={this.props.navigation}
+              period={period}/>
           </View>
-          <View style={styles.divider} />
-          <SummaryTable
-            summary={financial_summary.summaries}
-            sparkline={financial_summary.sparkline}
-            current_prices={financial_summary.current_prices}
-            navigation={this.props.navigation}
-            period={period}/>
-        </View>
-      </ScrollView>
+        </ScrollView>
       </View>
     )
   }

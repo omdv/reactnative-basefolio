@@ -69,7 +69,7 @@ const ApplicationStyles = {
       paddingTop: 4
     },
     header: {
-      marginTop: Metrics.baseMargin*3,
+      marginTop: Metrics.baseMargin*2,
       flexDirection: 'row',
       justifyContent: 'space-between'
     },

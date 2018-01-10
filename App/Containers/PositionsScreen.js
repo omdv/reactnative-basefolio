@@ -29,6 +29,14 @@ class PositionsScreen extends Component {
     this.renderRowClosed = this.renderRowClosed.bind(this)
   }
 
+  formatMonies(value) {
+    if (value > 1000) {
+      return numeral(value).format('$0.000a')
+    } else {
+      return numeral(value).format('$0.00a')
+    }
+  }
+
   renderRowOpen ({item}) {
     return (
       <View style={{margin: 0, padding: 0}}>
@@ -68,28 +76,20 @@ class PositionsScreen extends Component {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionHeaderText}>Cost basis</Text>
-              <Text style={styles.sectionHeaderText}>{numeral(summary[0].cost_basis).format('$0.000a')}</Text>
+              <Text style={styles.sectionHeaderText}>{this.formatMonies(summary[0].cost_basis)}</Text>
             </View>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionHeaderText}>Current value</Text>
-              <Text style={styles.sectionHeaderText}>{numeral(summary[0].current_value).format('$0.000a')}</Text>
+              <Text style={styles.sectionHeaderText}>{this.formatMonies(summary[0].current_value)}</Text>
             </View>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionHeaderText}>Total P/L</Text>
-              <Text style={styles.sectionHeaderText}>{numeral(summary[0].gain).format('$0.000a')}</Text>
+              <Text style={styles.sectionHeaderText}>{this.formatMonies(summary[0].gain)}</Text>
             </View>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionHeaderText}>P/L change over {period}</Text>
-              <Text style={styles.sectionHeaderText}>{numeral(summary[0].gain_period).format('$0.000a')}</Text>
+              <Text style={styles.sectionHeaderText}>{this.formatMonies(summary[0].gain_period)}</Text>
             </View>
-            {/* <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionHeaderText}>Total return</Text>
-              <Text style={styles.sectionHeaderText}>{numeral(summary[0].return).format('0.00%')}</Text>
-            </View>   
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionHeaderText}>Return over {period}</Text>
-              <Text style={styles.sectionHeaderText}>{numeral(summary[0].return_period).format('0.00%')}</Text>
-            </View>   */}
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionHeaderText}>Portfolio ratio</Text>
               <Text style={styles.sectionHeaderText}>{numeral(summary[0].ratio).format('0.00%')}</Text>

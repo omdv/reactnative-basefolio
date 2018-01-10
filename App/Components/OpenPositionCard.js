@@ -14,6 +14,12 @@ export default class OpenPositionCard extends Component {
   static propTypes = {
     item: PropTypes.object,
   }
+
+  formatAmount(amount) {
+    whole = Math.ceil(Math.log10(amount))
+    deci = whole > 0 ? 9 - whole : 8
+    return amount.toFixed(deci)
+  }
   
   // Defaults for props
   static defaultProps = {
@@ -52,8 +58,8 @@ export default class OpenPositionCard extends Component {
             />}
           </View>
           <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-            <Text style={styles.positionsRowText}>BUY: {item.amount.toPrecision(8)}</Text>
-            <Text style={styles.positionsRowText}>@ {item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
+            <Text style={styles.positionsRowText}>BUY: {this.formatAmount(item.amount)}</Text>
+            <Text style={styles.positionsRowText}>@ {numeral(item.price).format(ApplicationStyles.formatPrices)}</Text>
             <Text style={styles.positionsRowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.date))}</Text>
           </View>
           <View style={{flexDirection: 'row', justifyContent: 'center'}}>

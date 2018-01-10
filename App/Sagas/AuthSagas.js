@@ -150,13 +150,14 @@ export function * getGDAXData (api, action, millis) {
 
     // API call - initial
     var response = yield call(api.getFills, passphrase, key, secret, false)
+    let t = true
 
     // success?
     if (response.ok) {
       var page_data = response['data']
 
       // check for pagination
-      while (response['data'].length > 0) {
+      while (response['data'].length === 100) {
         after_cursor = response['headers']['cb-after']
         var response = yield call(api.getFills, passphrase, key, secret, after_cursor)
         new_page_data = response['data']

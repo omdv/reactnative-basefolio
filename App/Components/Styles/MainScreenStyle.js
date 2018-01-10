@@ -8,7 +8,6 @@ export default StyleSheet.create({
     resizeMode: 'contain'
   },
   graphWrapper: {
-    height: Metrics.screenHeight/4,
     marginTop: Metrics.baseMargin,
     marginBottom: Metrics.baseMargin
   },

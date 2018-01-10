@@ -47,16 +47,14 @@ function* pollCurrentPrices(api, action, millis) {
 }
 
 // helper to introduce delay between api calls to avoid ban
-function * pollHistPriceForOneCoin(api, coin, period) {
-  let response = {}
+function * pollHistPriceForOneCoin(api, coin, period, millis) {
+  yield delay(millis)
+  let response
   if (period === -1) {
     response = yield call(api.getDailyHistPrices, coin)
   } else {
     response = yield call(api.getDailyHistPricesPeriod, coin, period) 
   }
-  let deb = true
-  // TODO: return delay before production
-  yield call(delay, 3)
   return response
 }
 
@@ -70,14 +68,14 @@ function* pollDailyHistPrices(api, action, millis) {
   // call API only if no prices or in a new day
   if (!hasPrices || !prices_end) {
     let response = yield all(
-      coins.map(coin => call(pollHistPriceForOneCoin, api, coin, -1))
+      coins.map((coin, idx) => call(pollHistPriceForOneCoin, api, coin, -1, 2000/coins.length * idx))
     )
 
     // get summary status
     let ok = response.map(a => a.ok).reduce((a,b) => a && b)
     
     // transform prices and get derived variables
-    var [ prices, end_dates, validation ] = TransformHistPrices(response, coins)
+    var [ prices, end_dates, validation ] = yield call(TransformHistPrices, response, coins)
     
     // success?
     if (ok & validation) {
@@ -96,17 +94,17 @@ function* pollDailyHistPrices(api, action, millis) {
     let time_since_update = Math.ceil((now-prices_end)/86400)-1
     
     response = yield all(
-      coins.map(coin => call(pollHistPriceForOneCoin, api, coin, time_since_update))
+      coins.map((coin, idx) => call(pollHistPriceForOneCoin, api, coin, time_since_update, 2000/coins.length * idx))
     )
 
     // get summary status
     let ok = response.map(a => a.ok).reduce((a,b) => a && b)
     
     // transform prices and get derived variables
-    var [ prices, end_dates, validation ] = TransformHistPrices(response, coins)
+    var [ prices, end_dates, validation ] = yield call(TransformHistPrices, response, coins)
 
     // merge prices
-    var new_prices = MergeHistPrices(old_hist_prices, prices)
+    var new_prices = yield call(MergeHistPrices, old_hist_prices, prices)
 
     if (ok & validation) {
       // concat two arrays

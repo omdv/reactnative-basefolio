@@ -16,14 +16,22 @@ export default class ClosedPositionCard extends Component {
 
   constructor(props) {
     super(props)
+    this.renderClosedPositions = this.renderClosedPositions.bind(this)
+
+  }
+
+  formatAmount(amount) {
+    whole = Math.ceil(Math.log10(amount))
+    deci = whole > 0 ? 9 - whole : 8
+    return amount.toFixed(deci)
   }
 
   renderClosedPositions({item}) {
     const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit'}
     return (
         <View style={{flex: 1, flexDirection: 'row', justifyContent: 'space-between'}}>
-          <Text style={styles.positionsRowText}>{item.amount.toFixed(8)}</Text>
-          <Text style={styles.positionsRowText}>bought @ {item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
+          <Text style={styles.positionsRowText}>{this.formatAmount(item.amount)}</Text>
+          <Text style={styles.positionsRowText}>bought @ {numeral(item.price).format(ApplicationStyles.formatPrices)}</Text>
           <Text style={styles.positionsRowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.date))}</Text>          
         </View>
     )
@@ -53,8 +61,8 @@ export default class ClosedPositionCard extends Component {
           />}
         </View>
         <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>
-          <Text style={styles.positionsRowText}>SELL: {item.amount.toFixed(8)}</Text>
-          <Text style={styles.positionsRowText}>@ {item.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</Text>
+          <Text style={styles.positionsRowText}>SELL: {this.formatAmount(item.amount)}</Text>
+          <Text style={styles.positionsRowText}>@ {numeral(item.price).format(ApplicationStyles.formatPrices)}</Text>
           <Text style={styles.positionsRowText}>on {new Intl.DateTimeFormat('en-GB', dateOptions).format(new Date(item.date))}</Text>
         </View>
         <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>

@@ -1,35 +1,4 @@
 export default {
-  // Functions return fixtures
-  getRoot: () => {
-    return {
-      ok: true,
-      data: require('../Fixtures/root.json')
-    }
-  },
-  getRate: () => {
-    return {
-      ok: true,
-      data: require('../Fixtures/rateLimit.json')
-    }
-  },
-  getUser: (username) => {
-    // This fixture only supports gantman or else returns skellock
-    const gantmanData = require('../Fixtures/gantman.json')
-    const skellockData = require('../Fixtures/skellock.json')
-    return {
-      ok: true,
-      data: username.toLowerCase() === 'gantman' ? gantmanData : skellockData
-    }
-  },
-  getAccounts: (username) => {
-    // This fixture only supports gantman or else returns skellock
-    const gantmanData = require('../Fixtures/gantman.json')
-    const skellockData = require('../Fixtures/skellock.json')
-    return {
-      ok: true,
-      data: username.toLowerCase() === 'gantman' ? gantmanData : skellockData
-    }
-  },
   getDailyHistPrices: (coin) => {
     let data = {}
     switch (coin) {
@@ -104,6 +73,8 @@ export default {
       case "0d8f8bf4-6eb1-53e3-9a31-8da1829ef552":
         data = require('../Fixtures/transactions_LTC.json')
         break
+      case "caae6ec2-1bf9-5653-9edf-bb6694b11d2f":
+        data = require('../Fixtures/transactions_BCH.json')
       default:
         data = {"data": [], "pagination": {"next_uri": null}}
         break
@@ -113,8 +84,24 @@ export default {
       data: data
     }
   },
-  getFills: () => {
+  getFills: (pass, key, secret, after) => {
     data = require('../Fixtures/fillsGDAX.json')
+    if (!after) {
+      return {
+        ok: true,
+        data: data,
+        headers: {'cb-after': false}
+      }
+    } else {
+      return {
+        ok: true,
+        data: [],
+        headers: {'cb-after': false}
+      }
+    }
+  },
+  getUser: (token) => {
+    data = require('../Fixtures/userData.json')
     return {
       ok: true,
       data: data

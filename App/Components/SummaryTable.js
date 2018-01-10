@@ -71,7 +71,7 @@ export default class SummaryTable extends Component {
   
   formatAmount(amount) {
     whole = Math.ceil(Math.log10(amount))
-    deci = whole > 0 ? 10 - whole : 9
+    deci = whole > 0 ? 9 - whole : 8
     return amount.toFixed(deci)
   }
 
@@ -104,7 +104,7 @@ export default class SummaryTable extends Component {
   }
 
   renderRow ({item}) {
-    const isPositive = item.gain_period > 0 ? 1 : 0
+    const isPositive = item.returnVal[0] === '+' || item.returnVal[0] === '$' ? 1 : 0
     const gainButtonWidth = Math.floor(Metrics.screenWidth/3)-2*Metrics.doubleBaseMargin
     const { period } = this.props
     

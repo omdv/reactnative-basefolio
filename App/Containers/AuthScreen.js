@@ -13,7 +13,6 @@ import {
   ActivityIndicator
 } from 'react-native'
 import { connect } from 'react-redux'
-import DevscreensButton from '../../ignite/DevScreens/DevscreensButton.js'
 import RoundedButton from '../../App/Components/RoundedButton'
 
 // actions

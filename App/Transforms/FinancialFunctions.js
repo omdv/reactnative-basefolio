@@ -489,6 +489,8 @@ function getReturnsByDate(assets, transactions, hist_prices) {
  * @return {object} object with all combined values
  */
 export function getAnalysis(assets, transactions, accounts, spot_prices, hist_prices, sparkline_duration, period) {
+  var coins = require('../Config/Coins')['coins']
+
   // get sparkline data from raw historicals
   let sparkline_data = pricesForSparkLine(hist_prices, sparkline_duration)
 
@@ -539,17 +541,24 @@ export function getAnalysis(assets, transactions, accounts, spot_prices, hist_pr
     fh = returns.full_history
     // TODO: use assets list
     // needed to add the zero baseline otherwise numbers start from 1st day
-    fh.splice(0,0,{BTC: {gain: 0}, ETH: {gain: 0}, LTC: {gain: 0}, BCH: {gain: 0}, portfolio: {gain: 0}})
+    // fh.splice(0,0,{BTC: {gain: 0}, ETH: {gain: 0}, LTC: {gain: 0}, BCH: {gain: 0}, portfolio: {gain: 0}})
     
-    if (period_duration > 0) {
+    if (period_duration > 0 && period_duration < fh.length) {
       fh = fh.slice(fh.length-period_duration)
     }
+
+    // get first non-zero price for coin (cover BCH edge case)
+    first_prices = []
+    coins.forEach(coin => {
+      var index = _.findIndex(fh, val => val[coin]['price'] > 0)
+      first_prices[coin] = fh[index][coin]['price']
+    })
 
     // calculate delta in returns over period
     processed = Object.keys(fh[0]).map(e => { return {
       gain: fh[fh.length-1][e].gain-fh[0][e].gain,
       cost_basis:fh[fh.length-1][e].cost_basis,
-      price_change: (fh[fh.length-1][e].price-fh[0][e].price)/fh[0][e].price,
+      price_change: (fh[fh.length-1][e].price-first_prices[e])/first_prices[e],
       coin:e}})
     
     // prepare for merging
