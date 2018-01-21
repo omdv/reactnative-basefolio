@@ -1,14 +1,8 @@
 #  cryptofolio
 
-Cryptocurrency portfolio tracking tool built in react-native.
-Features:
-- pulling trades from Coinbase API
-- pulling real-time and historical prices from cryptocompare API
-- calculates open/closed positions and P/L
-- plots performance for various time frames
-- Robinhood-like UI
+Free cryptocurrency portfolio tracker for Coinbase/GDAX users. Automated polling of transactions and prices. Convenient dashboard. Calculation of P/L for all positions.
 
-Main screen:
+Basefolio is a free cryptocurrency portfolio tracker which I wrote for my own use. If you are one of 13+ million of Coinbase/GDAX users and are tired of manually entering all transactions this app is for you. Feature-rich dashboard modelled after a great stock-trading app by Robinhood. Backend calculations to give you a complete view of your P/L both for open and closed positions.
 
 <img src="https://github.com/omdv/react-native-cryptofolio/blob/master/screenshots/main_screen.png" width="40%">
 

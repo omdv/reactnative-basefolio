@@ -53,6 +53,7 @@ fastlane/Preview.html
 fastlane/screenshots
 
 # deployment
+.gitignore
 ios/
 android/
 storybook/
@@ -60,3 +61,4 @@ ignite/
 .vscode/
 Tests/
 App/Config/OAuth.js
+App/Config/Fixtures/*.json

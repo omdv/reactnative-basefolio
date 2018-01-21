@@ -23,6 +23,9 @@ import CryptoPricesActions from '../Redux/CryptoPricesRedux'
 import { Images } from '../Themes'
 import styles from './Styles/AuthScreenStyle'
 
+// SafariView
+import SafariView from "react-native-safari-view"
+
 // OAuth
 var credentials = require('../Config/OAuth');
 
@@ -55,14 +58,17 @@ class AuthScreen extends Component {
   }
 
   // request code, code will be handled by _handleOpenUrl
-  _authCoinbase = () => {
-    Linking.openURL([
-      'https://www.coinbase.com/oauth/authorize?response_type=code',
-      '&client_id=', credentials.coinbase.client_id,
-      '&redirect_uri=', credentials.coinbase.redirect_uri,
-      '&scope=', credentials.coinbase.scopes,
-      '&account=all'].join(''))
-  }
+    _authCoinbase = () => {
+      const url = [
+        'https://www.coinbase.com/oauth/authorize?response_type=code',
+        '&client_id=', credentials.coinbase.client_id,
+        '&redirect_uri=', credentials.coinbase.redirect_uri,
+        '&scope=', credentials.coinbase.scopes,
+        '&account=all'].join('')
+      SafariView.isAvailable()
+        .then(SafariView.show({url: url}))
+        .catch(error => { Linking.openURL(url) })
+    }
 
   // exchange code for a token
   _tokenCoinbase = () => {
@@ -84,6 +90,7 @@ class AuthScreen extends Component {
         this.access_token = resp.access_token
         this.refresh_token = resp.refresh_token
         this.token_expiration = new Date().getTime() / 1000 + resp.expires_in
+        SafariView.dismiss()
         this.props.initAuth(this.access_token, this.refresh_token, this.token_expiration)
         this.props.getCoinbase()
         this.props.getPrices()
@@ -104,7 +111,8 @@ class AuthScreen extends Component {
 
 const mapStateToProps = (state) => {
   return {
-    fetching: state.auth.fetching
+    fetching: state.auth.fetching,
+    auth_success: state.auth.is_auth_valid,
   }
 }
 
